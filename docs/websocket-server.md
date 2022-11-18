@@ -20,12 +20,12 @@
 
 | Class          | Post                      | Get/List | Patch/Delete              |
 |----------------|---------------------------|----------|---------------------------|
-| PromotionTest  | Admin                     | Public   | Admin^1                   |
-| Court          | Admin^1, CO^2             | Public   | Admin^1, CO^2             |
-| PromotionGroup | Admin^1, CO^2             | Public   | Admin^1, CO^2             |
-| Examiner       | Admin^1, CO^3             | Public   | Admin^1, CO^3             |
-| Examinee       | Admin^1, CO^3             | Public   | Admin^1, CO^3             |
-| Score          | Admin^1, CO^4, Examiner^4 | Public   | Admin^1, CO^4, Examiner^4 |
+| PromotionTest  | Admin                     | Public   | Admin^{1}                   |
+| Court          | Admin^{1}, CO^{2}             | Public   | Admin^{1}, CO^{2}             |
+| PromotionGroup | Admin^{1}, CO^{2}             | Public   | Admin^{1}, CO^{2}             |
+| Examiner       | Admin^{1}, CO^{3}             | Public   | Admin^{1}, CO^{3}             |
+| Examinee       | Admin^{1}, CO^{3}             | Public   | Admin^{1}, CO^{3}             |
+| Score          | Admin^{1}, CO^{4}, Examiner^{4} | Public   | Admin^{1}, CO^{4}, Examiner^{4} |
 
 1. Poster
 2. Assigned to the court
