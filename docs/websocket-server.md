@@ -18,14 +18,16 @@
 
 ### Permissions
 
-| Class          | Post                      | Get/List | Patch/Delete              |
-|----------------|---------------------------|----------|---------------------------|
-| PromotionTest  | Admin                     | Public   | Admin^{1}                   |
-| Court          | Admin^{1}, CO^{2}             | Public   | Admin^{1}, CO^{2}             |
-| PromotionGroup | Admin^{1}, CO^{2}             | Public   | Admin^{1}, CO^{2}             |
-| Examiner       | Admin^{1}, CO^{3}             | Public   | Admin^{1}, CO^{3}             |
-| Examinee       | Admin^{1}, CO^{3}             | Public   | Admin^{1}, CO^{3}             |
-| Score          | Admin^{1}, CO^{4}, Examiner^{4} | Public   | Admin^{1}, CO^{4}, Examiner^{4} |
+| Class          | Post             | Get/List | Patch/Delete     |
+|----------------|------------------|----------|------------------|
+| PromotionTest  | Ad               | Public   | Ad 1             |
+| Court          | Ad 1, CO 2       | Public   | Ad 1, CO 2       |
+| PromotionGroup | Ad 1, CO 2       | Public   | Ad 1, CO 2       |
+| Examiner       | Ad 1, CO 3       | Public   | Ad 1, CO 3       |
+| Examinee       | Ad 1, CO 3       | Public   | Ad 1, CO 3       |
+| Score          | Ad 1, CO 4, Ex 4 | Public   | Ad 1, CO 4, Ex 4 |
+
+**Ad:** Administrator, **CO:** Computer Operator, **Ex:** Examiner
 
 1. Poster
 2. Assigned to the court
