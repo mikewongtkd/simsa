@@ -5,6 +5,6 @@ const wss    = new WebSocketServer({ port : 8055 });
 
 wss.on( 'connection', ws => {
 	ws.on( 'message', message => {
-		sqlite.connect( 'shinsa.sqlite' );
+		sqlite.connect( '/usr/local/shinsa/db.sqlite' );
 	});
 });

@@ -2,6 +2,7 @@ drop table if exists user;
 
 create table user (
 	uuid text primary key,
+	id text not null,
 	fname text not null,
 	lname text not null,
 	email text unique not null,
@@ -20,6 +21,12 @@ create table promotion_test (
 	uuid text primary key,
 	name text,
 	poster text,
+	address1 text,
+	address2 text,
+	city text,
+	country text,
+	daystart text,
+	daystop text,
 	schedule text_json,
 	description text,
 	url text,
