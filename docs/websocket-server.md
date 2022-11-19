@@ -21,15 +21,17 @@
 | Class          | Post             | Get/List | Patch/Delete     |
 |----------------|------------------|----------|------------------|
 | PromotionTest  | Ad               | Public   | Ad 1             |
-| Court          | Ad 1, CO 2       | Public   | Ad 1, CO 2       |
-| PromotionGroup | Ad 1, CO 2       | Public   | Ad 1, CO 2       |
-| Examiner       | Ad 1, CO 3       | Public   | Ad 1, CO 3       |
-| Examinee       | Ad 1, CO 3       | Public   | Ad 1, CO 3       |
-| Score          | Ad 1, CO 4, Ex 4 | Public   | Ad 1, CO 4, Ex 4 |
+| Official       | Ad 1             | Any      | Ad 1             |
+| Court          | Ad 1             | Any      | Ad 1             |
+| PromotionGroup | Ad 1, CO 2       | Any      | Ad 1, CO 2       |
+| Examiner       | Ad 1             | Any      | Ad 1, CO 3       |
+| Examinee       | Ad 1, CO 3       | Any      | Ad 1, CO 3       |
+| Score          | Ad 1, CO 4, Ex 4 | Any      | Ad 1, CO 4, Ex 4 |
+| User           | Ad 1             | Any      | Ad 1             |
 
 **Ad:** Administrator, **CO:** Computer Operator, **Ex:** Examiner
 
-1. Poster
+1. Poster or Deputy
 2. Assigned to the court
-3. Assigned to the court, and for an object assigned to the Staging court
+3. Assigned to the court, and for an object assigned to the court or staging
 4. Assigned to the court, and for an Examinee assigned to the court
