@@ -21,6 +21,7 @@ create table promotion_test (
 	uuid text primary key,
 	name text,
 	poster text,
+	host text,
 	address1 text,
 	address2 text,
 	city text,
