@@ -35,9 +35,9 @@ create table promotion_test (
 	foreign key( poster ) references user( uuid )
 );
 
-drop table if exists court;
+drop table if exists panel;
 
-create table court (
+create table panel (
 	uuid text primary key,
 	test text not null,
 	area text,
@@ -51,13 +51,13 @@ drop table if exists promotion_group;
 create table promotion_group (
 	uuid text primary key,
 	test text not null,
-	court text,
+	panel text,
 	area text not null,
 	name text,
 	description text,
 	info text_json,
 	foreign key( test ) references promotion_test( uuid ),
-	foreign key( court ) references court( uuid )
+	foreign key( panel ) references panel( uuid )
 );
 
 drop table if exists official;
