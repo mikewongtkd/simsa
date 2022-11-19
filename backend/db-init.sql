@@ -57,8 +57,10 @@ drop table if exists official;
 create table official (
 	uuid text primary key,
 	user text not null,
+	test text not null,
 	role text,
-	foreign key( user ) references user( uuid )
+	foreign key( user ) references user( uuid ),
+	foreign key( test ) references promotion_test( uuid )
 );
 
 drop table if exists examinee;
@@ -66,7 +68,7 @@ drop table if exists examinee;
 create table examinee (
 	uuid text primary key,
 	user text not null,
-	test text,
+	test text not null,
 	id int,
 	`group` text,
 	subgroup int,
@@ -81,7 +83,7 @@ drop table if exists examiner;
 create table examiner (
 	uuid text primary key,
 	user text not null,
-	test text,
+	test text not null,
 	info text_json,
 	foreign key( user ) references user( uuid ),
 	foreign key( test ) references promotion_test( uuid )
