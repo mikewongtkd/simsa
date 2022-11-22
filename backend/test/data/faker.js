@@ -94,7 +94,9 @@ function createRandomPromotionTest( poster ) {
 		address1 : faker.address.streetAddress(),
 		city, state, country,
 		daystart : start.toUTC().toISODate(),
-		daystop : stop.toUTC().toISODate()
+		daystop : stop.toUTC().toISODate(),
+		description : `Kukkiwon Dan Promotion Test, hosted by ${state} Taekwondo Association`,
+		url : faker.internet.url()
 	};
 }
 
