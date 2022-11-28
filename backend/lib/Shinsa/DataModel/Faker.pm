@@ -3,6 +3,8 @@ package Shinsa::DataModel::Faker;
 use lib qw( /usr/local/shinsa/lib );
 use Math::Random qw( random_beta );
 use Date::Manip;
+use Data::Faker;
+use Data::Faker::USNames;
 use POSIX qw( ceil floor round );
 
 # ============================================================
@@ -18,6 +20,7 @@ sub new {
 sub init {
 # ============================================================
 	my $self = shift;
+	$self->{ faker } = new Data::Faker();
 
 }
 
@@ -33,6 +36,16 @@ sub birthday {
 
 	$bday->convert( 'utc' );
 	return $bday;
+}
+
+# ============================================================
+sub user {
+# ============================================================
+	my $self   = shift;
+	my $faker  = $self->{ faker };
+	my $gender = $faker->person_gender();
+	my $dob    = birthday();
+	my $fname  = $faker->us_first_name->( $gender, $dob->printf( '%Y' ));
 }
 
 # ============================================================
@@ -87,6 +100,8 @@ sub _rank_history {
 			$date = $promotion;
 		}
 	}
+
+	return $history;
 }
 
 # ============================================================

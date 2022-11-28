@@ -87,9 +87,11 @@ sub insert {
 
 	if( ref $values eq 'HASH' ) {
 		my $schema = $self->schema( $table );
+		my $type   = {};
 		my $fields = [];
 		foreach my $field (@$schema) {
 			next unless( exists $values->{ $field->{ name }});
+			$type->{ $field->{ name }} = $field->{ type };
 			push @$fields, $field->{ name };
 		}
 		if( int( @$fields ) == 0 ) {
@@ -97,6 +99,12 @@ sub insert {
 			my $insert = $json->canonical->encode( $values );
 			die "No valid fields provided for insert $insert $!";
 		}
+		unless( exists $values->{ uuid }) {
+			unshift @$fields, 'uuid';
+			$values->{ uuid } = $self->uuid();
+		}
+		$values = join( ', ', map { _sanitize( $values->{ $_ }, $type->{ $_ }) } @$fields );
+
 	} elsif( ref $values eq 'ARRAY' ) {
 		my $fields = [ map { $_->{ name } } $self->schema( $table )];
 		unless( int( @$fields ) == int( @$values )) {
@@ -104,6 +112,7 @@ sub insert {
 			my $insert = $json->canonical->encode( $values );
 			die "Incorrect number of fields provided for insert $insert $!";
 		}
+		$values = join( ', ', @$values );
 	}
 
 	$fields = join( ', ', @$fields ) if ref $fields eq 'ARRAY';
@@ -169,9 +178,12 @@ sub update {
 	die "Invalid argument to update; must be a hashref" unless( ref $values eq 'HASH' );
 	my $schema = $self->schema( $table );
 	my $fields = [];
+	my $type   = {};
 	foreach my $field (@$schema) {
-		next unless( exists $values->{ $field->{ name }});
-		push @$fields, $field->{ name };
+		my $name = $field->{ name };
+		next unless( exists $values->{ $name });
+		push @$fields, $name;
+		$type->{ $name } = $field->{ type };
 	}
 	if( int( @$fields ) == 0 ) {
 		my $json   = new JSON::XS();
@@ -191,7 +203,7 @@ sub update {
 		}
 	}
 
-	$values = join( ', ', map { "$_=$values->{ $_ }" } @$fields );
+	$values = join( ', ', map { my $value = _sanitize( $values->{ $_ }, $type->{ $_ }); "$_=$value" } @$fields );
 	$where  = $where ? " where $where" : '';
 
 	my $sth = $dbh->prepare( "update $table set $values $where" );
@@ -227,6 +239,25 @@ sub uuid {
 	}
 
 	return $uuid;
+}
+
+# ============================================================
+sub _sanitize {
+# ============================================================
+	my $value = shift;
+	my $type  = shift;
+
+	if( $type =~ /^text/i ) {
+		if( ref $value ) {
+			my $json = new JSON::XS();
+			$value   = $json->canonical->encode( $value );
+		}
+		$value =~ s/'/''/g;
+		return "'$value'";
+
+	} else {
+		return $value;
+	}
 }
 
 1;
