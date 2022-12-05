@@ -100,6 +100,18 @@ function createRandomPromotionTest( poster ) {
 	};
 }
 
+// ============================================================
+function createRandomPromotionTestPanel( promotionTest, number, size ) {
+// ============================================================
+	const panel = {
+		uuid : faker.datatype.uuid(),
+		test : promotionTest.uuid,
+		name : `Test Room ${number}`,
+	}
+
+	return panel;
+}
+
 for( let i = 0; i < 10; i++ ) {
 	let poster = createRandomUser();
 	let test   = createRandomPromotionTest( poster );
