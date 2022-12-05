@@ -1,3 +1,12 @@
+drop table if exists login;
+
+create table login (
+	uuid text primary key,
+	email text unique not null,
+	pwhash text,
+	role text
+)
+
 drop table if exists user;
 
 create table user (
@@ -5,14 +14,13 @@ create table user (
 	id text not null,
 	fname text not null,
 	lname text not null,
-	email text unique not null,
-	pwhash text,
-	role text,
+	email text not null,
 	dob text,
 	gender text,
 	rank text_json,
 	noc text,
-	info text_json
+	info text_json,
+	foreign key( email ) references login( email )
 );
 
 drop table if exists promotion_test;
