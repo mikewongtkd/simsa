@@ -1,14 +1,10 @@
 #! /usr/bin/perl
 
 use lib qw( lib /usr/local/shinsa/lib );
-use Clone qw( clone );
-use Data::Structure::Util qw( unbless );
 use Mojolicious::Lite;
 use JSON::XS;
-use Digest::SHA1 qw( sha1_hex );
 use Shinsa::Config;
 use Try::Tiny;
-use List::MoreUtils qw( first_index );
 use Data::Dumper;
 
 srand();
@@ -46,6 +42,6 @@ websocket '/shinsa/api/v1/:id' => sub {
 # HYPNOTOAD SERVER
 # ============================================================
 mkdir '/var/log/shinsa' unless -e '/var/log/shinsa';
-app->config( hypnotoad => { listen => [ 'http://*:3080' ], pid_file => '/var/run/shinsa.pid' });
+app->config( hypnotoad => { listen => [ $config->host({ port => 3080 }) ], pid_file => '/var/run/shinsa.pid' });
 app->log( new Mojo::Log( path => '/var/log/shinsa/wsserver.log', level => 'error' ));
 app->start();
