@@ -26,8 +26,8 @@ create table promotion_test (
 	address2 text,
 	city text,
 	country text,
-	daystart text,
-	daystop text,
+	start_date text,
+	stop_date text,
 	schedule text_json,
 	description text,
 	url text,
@@ -40,10 +40,21 @@ drop table if exists panel;
 create table panel (
 	uuid text primary key,
 	test text not null,
-	area text,
 	name text,
 	info text_json,
 	foreign key( test ) references promotion_test( uuid )
+);
+
+drop table if exists panel-examiner;
+
+create table panel-examiner (
+	uuid text primary key,
+	panel text not null,
+	examiner text not null,
+	start text,
+	stop text,
+	foreign key( panel ) references panel( uuid ),
+	foreign key( examiner ) references examiner( uuid )
 );
 
 drop table if exists promotion_group;
