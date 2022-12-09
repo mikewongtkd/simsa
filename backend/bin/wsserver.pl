@@ -14,11 +14,12 @@ our $config  = new Shinsa::Config();
 our $clients = {};
 
 # ============================================================
-websocket '/shinsa/api/v1/:id' => sub {
+websocket '/shinsa/api/v1/:test/:id' => sub {
 # ============================================================
 	my $self       = shift;
+	my $test       = $self->param( 'test' );
 	my $id         = $self->param( 'id' );
-	my $manager    = new Shinsa::RequestManager( $id );
+	my $manager    = new Shinsa::RequestManager( $test );
 
 	$self->inactivity_timeout( 3600 ); # 1 hour
 

@@ -3,9 +3,8 @@ drop table if exists login;
 create table login (
 	uuid text primary key,
 	email text unique not null,
-	pwhash text,
-	role text
-)
+	pwhash text
+);
 
 drop table if exists user;
 
@@ -39,6 +38,7 @@ create table promotion_test (
 	schedule text_json,
 	description text,
 	url text,
+	permissions text_json,
 	info text_json,
 	foreign key( poster ) references user( uuid )
 );
@@ -53,9 +53,9 @@ create table panel (
 	foreign key( test ) references promotion_test( uuid )
 );
 
-drop table if exists panel-examiner;
+drop table if exists panel_examiner;
 
-create table panel-examiner (
+create table panel_examiner (
 	uuid text primary key,
 	panel text not null,
 	examiner text not null,
@@ -86,6 +86,7 @@ create table official (
 	user text not null,
 	test text not null,
 	role text,
+	info text_json,
 	foreign key( user ) references user( uuid ),
 	foreign key( test ) references promotion_test( uuid )
 );

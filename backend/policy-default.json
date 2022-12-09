@@ -1,0 +1,30 @@
+{
+	"root" : { "all" : "all" },
+	"admin" : { "PromotionTest" : [ "Post" ]},
+	"poster" : {
+		"PromotionTest" : [ "Patch", "Delete" ],
+		"Official" : [ "Post", "Patch", "Delete" ],
+		"Panel" : [ "Post", "Patch", "Delete" ],
+		"PromotionGroup" : [ "Post", "Patch", "Delete" ],
+		"Examiner" : [ "Post", "Patch", "Delete" ],
+		"Examinee" : [ "Post", "Patch", "Delete" ],
+		"Score" : [ "Post", "Patch", "Delete" ],
+		"User" : [ "Post", "Patch", "Delete" ]
+	},
+	"deputy" : {
+		"PromotionTest" : [ "Patch", "Delete" ],
+		"Official" : [ "Post", "Patch", "Delete" ],
+		"Panel" : [ "Post", "Patch", "Delete" ],
+		"PromotionGroup" : [ "Post", "Patch", "Delete" ],
+		"Examiner" : [ "Post", "Patch", "Delete" ],
+		"Examinee" : [ "Post", "Patch", "Delete" ],
+		"Score" : [ "Post", "Patch", "Delete" ],
+		"User" : [ "Post", "Patch", "Delete" ]
+	},
+	"official" : {
+	},
+	"public" : {
+		"PromotionTest" : [ "Get", "List" ]
+	}
+
+}

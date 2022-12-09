@@ -21,13 +21,13 @@
 | Class          | Post             | Get/List | Patch/Delete     |
 |----------------|------------------|----------|------------------|
 | PromotionTest  | Ad               | Public   | Ad 1             |
-| Official       | Ad 1             | Any      | Ad 1             |
-| Court          | Ad 1             | Any      | Ad 1             |
-| PromotionGroup | Ad 1, CO 2       | Any      | Ad 1, CO 2       |
-| Examiner       | Ad 1             | Any      | Ad 1, CO 3       |
-| Examinee       | Ad 1, CO 3       | Any      | Ad 1, CO 3       |
-| Score          | Ad 1, CO 4, Ex 4 | Any      | Ad 1, CO 4, Ex 4 |
-| User           | Ad 1             | Any      | Ad 1             |
+| Official       | Ad 1             | Of       | Ad 1             |
+| Panel          | Ad 1             | Of       | Ad 1             |
+| PromotionGroup | Ad 1, CO 2       | Of       | Ad 1, CO 2       |
+| Examiner       | Ad 1             | Of       | Ad 1, CO 3       |
+| Examinee       | Ad 1, CO 3       | Of, Self | Ad 1, CO 3       |
+| Score          | Ad 1, CO 4, Ex 4 | Of       | Ad 1, CO 4, Ex 4 |
+| User           | Ad 1             | Of, Self | Ad 1             |
 
 **Ad:** Administrator, **CO:** Computer Operator, **Ex:** Examiner
 

@@ -48,6 +48,22 @@ sub delete {
 }
 
 # ============================================================
+sub fetch {
+# ============================================================
+	my $self  = shift;
+	my $table = shift;
+	my $uuid  = shift;
+
+	my $rows  = $self->select( $table, "uuid='$uuid'" );
+
+	die "No entry in $table with UUID $uuid $!" if @$rows == 0;
+	die "Redundant entries in $table with UUID $uuid $!" if @$rows > 1;
+
+	my $row   = $rows->[ 0 ];
+	return $row;
+}
+
+# ============================================================
 sub handle {
 # ============================================================
 	my $self = shift;
