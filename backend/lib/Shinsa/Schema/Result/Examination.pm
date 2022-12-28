@@ -24,16 +24,17 @@ __PACKAGE__->add_columns(
 	host        => { data_type => 'string' },
 	address     => { data_type => 'string' },
 	start       => { data_type => 'date',   is_nullable => 1 },
-	schedule    => { data_type => 'string' },
+	schedule    => { data_type => 'string', serializer_class => 'JSON', serializer_options => { allow_blessed => 1, convert_blessed => 1, pretty => 0 }},
 	description => { data_type => 'string', is_nullable => 1 },
 	url         => { data_type => 'string' },
 	permissions => { data_type => 'string' },
-	info        => { data_type => 'string' }
+	info        => { data_type => 'string', serializer_class => 'JSON', serializer_options => { allow_blessed => 1, convert_blessed => 1, pretty => 0 }}
+
 );
-__PACKAGE__->belongs_to( 'login' => 'Shinsa::Schema::Result::Login', 'email' );
-__PACKAGE__->belongs_to( 'examinee' => 'Shinsa::Schema::Result::Examinee', 'uuid' );
-__PACKAGE__->belongs_to( 'examiner' => 'Shinsa::Schema::Result::Examiner', 'uuid' );
-__PACKAGE__->belongs_to( 'official' => 'Shinsa::Schema::Result::Official', 'uuid' );
+__PACKAGE__->has_many(   'examinee' => 'Shinsa::Schema::Result::Examinee', 'exam' );
+__PACKAGE__->has_many(   'cohort'   => 'Shinsa::Schema::Result::Cohort',   'exam' );
+__PACKAGE__->has_many(   'official' => 'Shinsa::Schema::Result::Official', 'exam' );
+__PACKAGE__->has_many(   'examiner' => 'Shinsa::Schema::Result::Examiner', 'exam' );
 __PACKAGE__->uuid_columns( 'uuid' );
 __PACKAGE__->set_primary_key( 'uuid' );
 

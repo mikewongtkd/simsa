@@ -44,10 +44,10 @@ drop table if exists panel;
 
 create table panel (
 	uuid text primary key,
-	test text not null,
+	exam text not null,
 	name text,
 	info text_json,
-	foreign key( test ) references examination( uuid )
+	foreign key( exam ) references examination( uuid )
 );
 
 drop table if exists panel_examiner;
@@ -66,14 +66,14 @@ drop table if exists cohort;
 
 create table cohort (
 	uuid text primary key,
-	test text not null,
+	exam text not null,
 	panel text,
 	area text not null,
 	name text,
 	description text,
 	parent text,
 	info text_json,
-	foreign key( test ) references examination( uuid ),
+	foreign key( exam ) references examination( uuid ),
 	foreign key( panel ) references panel( uuid )
 	foreign key( parent ) references cohort( uuid ),
 );
@@ -83,11 +83,11 @@ drop table if exists official;
 create table official (
 	uuid text primary key,
 	user text not null,
-	test text not null,
+	exam text not null,
 	role text,
 	info text_json,
 	foreign key( user ) references user( uuid ),
-	foreign key( test ) references examination( uuid )
+	foreign key( exam ) references examination( uuid )
 );
 
 drop table if exists examinee;
@@ -95,12 +95,12 @@ drop table if exists examinee;
 create table examinee (
 	uuid text primary key,
 	user text not null,
-	test text not null,
+	exam text not null,
 	id int,
 	cohort text,
 	info text_json,
 	foreign key( user ) references user( uuid ),
-	foreign key( test ) references examination( uuid ),
+	foreign key( exam ) references examination( uuid ),
 	foreign key( `group` ) references group( uuid )
 );
 
@@ -109,10 +109,10 @@ drop table if exists examiner;
 create table examiner (
 	uuid text primary key,
 	user text not null,
-	test text not null,
+	exam text not null,
 	info text_json,
 	foreign key( user ) references user( uuid ),
-	foreign key( test ) references examination( uuid )
+	foreign key( exam ) references examination( uuid )
 );
 
 drop table if exists score;
