@@ -3,7 +3,8 @@ drop table if exists login;
 create table login (
 	uuid text primary key,
 	email text unique not null,
-	pwhash text
+	pwhash text,
+	info text_json
 );
 
 drop table if exists user;
@@ -22,19 +23,15 @@ create table user (
 	foreign key( email ) references login( email )
 );
 
-drop table if exists promotion_test;
+drop table if exists examination;
 
-create table promotion_test (
+create table examination (
 	uuid text primary key,
 	name text,
 	poster text,
 	host text,
-	address1 text,
-	address2 text,
-	city text,
-	country text,
-	start_date text,
-	stop_date text,
+	address text_json,
+	start text,
 	schedule text_json,
 	description text,
 	url text,
@@ -50,7 +47,7 @@ create table panel (
 	test text not null,
 	name text,
 	info text_json,
-	foreign key( test ) references promotion_test( uuid )
+	foreign key( test ) references examination( uuid )
 );
 
 drop table if exists panel_examiner;
@@ -65,18 +62,20 @@ create table panel_examiner (
 	foreign key( examiner ) references examiner( uuid )
 );
 
-drop table if exists promotion_group;
+drop table if exists cohort;
 
-create table promotion_group (
+create table cohort (
 	uuid text primary key,
 	test text not null,
 	panel text,
 	area text not null,
 	name text,
 	description text,
+	parent text,
 	info text_json,
-	foreign key( test ) references promotion_test( uuid ),
+	foreign key( test ) references examination( uuid ),
 	foreign key( panel ) references panel( uuid )
+	foreign key( parent ) references cohort( uuid ),
 );
 
 drop table if exists official;
@@ -88,7 +87,7 @@ create table official (
 	role text,
 	info text_json,
 	foreign key( user ) references user( uuid ),
-	foreign key( test ) references promotion_test( uuid )
+	foreign key( test ) references examination( uuid )
 );
 
 drop table if exists examinee;
@@ -98,12 +97,11 @@ create table examinee (
 	user text not null,
 	test text not null,
 	id int,
-	`group` text,
-	subgroup int,
+	cohort text,
 	info text_json,
 	foreign key( user ) references user( uuid ),
-	foreign key( test ) references promotion_test( uuid ),
-	foreign key( `group` ) references promotion_group( uuid )
+	foreign key( test ) references examination( uuid ),
+	foreign key( `group` ) references group( uuid )
 );
 
 drop table if exists examiner;
@@ -114,7 +112,7 @@ create table examiner (
 	test text not null,
 	info text_json,
 	foreign key( user ) references user( uuid ),
-	foreign key( test ) references promotion_test( uuid )
+	foreign key( test ) references examination( uuid )
 );
 
 drop table if exists score;

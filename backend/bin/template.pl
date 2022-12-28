@@ -43,21 +43,13 @@ sub write_template {
 	if( -e $file ) {
 
 	} else {
+		my $package = join( '::', ( 'Shinsa' , @$name ))
 		open my $fh, '>', $file or die $!;
-		printf $fh "package %s\n\n", join( '::', ( 'Shinsa' , @$name ));
+		printf $fh "package %s\n\n", $package;
 		print $fh <<EOF;
 use lib qw( lib );
 use Shinsa::DB;
-use JSON::XS;
-
-# ============================================================
-sub new {
-# ============================================================
-	my (\$class) = map { ref || \$_ } shift;
-	my \$self = bless {}, \$class;
-	\$self->init( \@_ );
-	return \$self;
-}
+use Moose;
 
 # ============================================================
 sub init {
@@ -68,13 +60,22 @@ sub init {
 	if( ref \$data eq 'HASH' ) {
 		\$self->{ \$_ } = \$data->{ \$_ } foreach (keys \%\$data);
 
-	} elsif( ! ref \$data ) {
+	} elsif( defined \$data && ! ref \$data ) {
 		my \$uuid = \$data;
 		my \$db   = new Shinsa::DB();
 		my \$data = \$db->fetch( \$uuid );
 		\$self->{ \$_ } = \$data->{ \$_ } foreach (keys \%\$data);
 		$decode
 	}
+}
+
+# ============================================================
+sub factory {
+# ============================================================
+	my \$data = shift;
+
+	my \$self = new $package( \$data );
+	return \$self;
 }
 
 EOF
