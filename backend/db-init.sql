@@ -75,7 +75,7 @@ create table cohort (
 	info text_json,
 	foreign key( exam ) references examination( uuid ),
 	foreign key( panel ) references panel( uuid )
-	foreign key( parent ) references cohort( uuid ),
+	foreign key( parent ) references cohort( uuid )
 );
 
 drop table if exists official;
@@ -101,7 +101,7 @@ create table examinee (
 	info text_json,
 	foreign key( user ) references user( uuid ),
 	foreign key( exam ) references examination( uuid ),
-	foreign key( `group` ) references group( uuid )
+	foreign key( cohort ) references cohort( uuid )
 );
 
 drop table if exists examiner;

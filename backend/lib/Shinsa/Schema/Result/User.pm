@@ -17,7 +17,7 @@ has rank   => ( is => 'rw', is_nullable => 1 );
 has noc    => ( is => 'rw' );
 has info   => ( is => 'rw' );
 
-__PACKAGE__->table( 'login' );
+__PACKAGE__->table( 'user' );
 __PACKAGE__->add_columns(
 	uuid   => { data_type => 'string' },
 	id     => { data_type => 'string' },

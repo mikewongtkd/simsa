@@ -16,7 +16,8 @@ has description => ( is => 'rw' );
 has noc         => ( is => 'rw' );
 has info        => ( is => 'rw' );
 
-__PACKAGE__->table( 'test' );
+__PACKAGE__->load_components( qw( InflateColumn::DateTime InflateColumn::Serializer Core ));
+__PACKAGE__->table( 'examination' );
 __PACKAGE__->add_columns(
 	uuid        => { data_type => 'string' },
 	name        => { data_type => 'string' },
