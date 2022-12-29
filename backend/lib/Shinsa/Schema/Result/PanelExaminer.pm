@@ -12,7 +12,7 @@ has examiner => ( is => 'rw' );
 has start    => ( is => 'rw' );
 has stop     => ( is => 'rw' );
 
-__PACKAGE__->load_components( qw( InflateColumn::DateTime ));
+__PACKAGE__->load_components( qw( InflateColumn::DateTime Core ));
 __PACKAGE__->table( 'panel_examiner' );
 __PACKAGE__->add_columns(
 	uuid     => { data_type => 'string' },
