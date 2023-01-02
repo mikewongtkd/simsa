@@ -4,7 +4,7 @@ use warnings;
 use strict;
 
 use Moose;
-use base qw( InflateColumn::Serializer DBIx::Class::Core );
+use base qw( DBIx::Class );
 
 has uuid   => ( is => 'rw' );
 has id     => ( is => 'rw' );
@@ -17,6 +17,7 @@ has rank   => ( is => 'rw', is_nullable => 1 );
 has noc    => ( is => 'rw' );
 has info   => ( is => 'rw' );
 
+__PACKAGE__->load_components( qw( InflateColumn::DateTime Core ));
 __PACKAGE__->table( 'user' );
 __PACKAGE__->add_columns(
 	uuid   => { data_type => 'string' },
@@ -30,11 +31,11 @@ __PACKAGE__->add_columns(
 	noc    => { data_type => 'string' },
 	info   => { data_type => 'string', serializer_class => 'JSON', serializer_options => { allow_blessed => 1, convert_blessed => 1, pretty => 0 }}
 );
-__PACKAGE__->belongs_to( 'login'       => 'Shinsa::Schema::Result::Login',       'email' );
-__PACKAGE__->belongs_to( 'examination' => 'Shinsa::Schema::Result::Examination', 'uuid' );
-__PACKAGE__->belongs_to( 'examinee'    => 'Shinsa::Schema::Result::Examinee',    'uuid' );
-__PACKAGE__->belongs_to( 'examiner'    => 'Shinsa::Schema::Result::Examiner',    'uuid' );
-__PACKAGE__->belongs_to( 'official'    => 'Shinsa::Schema::Result::Official',    'uuid' );
+__PACKAGE__->belongs_to( 'login'       => 'Shinsa::Schema::Result::Login', 'email' );
+__PACKAGE__->belongs_to( 'examination' => 'Shinsa::Schema::Result::Examination' );
+__PACKAGE__->belongs_to( 'examinee'    => 'Shinsa::Schema::Result::Examinee' );
+__PACKAGE__->belongs_to( 'examiner'    => 'Shinsa::Schema::Result::Examiner' );
+__PACKAGE__->belongs_to( 'official'    => 'Shinsa::Schema::Result::Official' );
 __PACKAGE__->uuid_columns( 'uuid' );
 __PACKAGE__->set_primary_key( 'uuid' );
 

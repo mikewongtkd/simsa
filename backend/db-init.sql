@@ -122,6 +122,7 @@ create table score (
 	given text_json,
 	examinee text not null,
 	examiner text not null,
+	time text default CURRENT_TIMESTAMP,
 	info text_json,
 	foreign key( examinee ) references examinee( uuid ),
 	foreign key( examiner ) references examiner( uuid )

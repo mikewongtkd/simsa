@@ -4,7 +4,7 @@ use warnings;
 use strict;
 
 use Moose;
-use base qw( DBIx::Class::Core );
+use base qw( DBIx::Class );
 
 has uuid     => ( is => 'rw' );
 has panel    => ( is => 'rw' );

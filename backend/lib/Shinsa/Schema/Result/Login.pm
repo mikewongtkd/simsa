@@ -4,13 +4,14 @@ use warnings;
 use strict;
 
 use Moose;
-use base qw( InflateColumn::Serializer DBIx::Class::Core );
+use base qw( DBIx::Class::Core );
 
 has uuid   => ( is => 'rw' );
 has email  => ( is => 'rw' );
 has pwhash => ( is => 'rw' );
 has info   => ( is => 'rw' );
 
+__PACKAGE__->load_components( qw( InflateColumn::Serializer Core ));
 __PACKAGE__->table( 'login' );
 __PACKAGE__->add_columns(
 	uuid   => { data_type => 'string' },
