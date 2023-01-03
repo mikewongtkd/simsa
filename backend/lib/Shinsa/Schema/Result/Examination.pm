@@ -16,7 +16,7 @@ has description => ( is => 'rw' );
 has noc         => ( is => 'rw' );
 has info        => ( is => 'rw' );
 
-__PACKAGE__->load_components( qw( InflateColumn::DateTime InflateColumn::Serializer Core ));
+__PACKAGE__->load_components( qw( UUIDColumns InflateColumn::DateTime InflateColumn::Serializer Core ));
 __PACKAGE__->table( 'examination' );
 __PACKAGE__->add_columns(
 	uuid        => { data_type => 'string' },
@@ -32,11 +32,13 @@ __PACKAGE__->add_columns(
 	info        => { data_type => 'string', serializer_class => 'JSON', serializer_options => { allow_blessed => 1, convert_blessed => 1, pretty => 0 }}
 
 );
+
+__PACKAGE__->uuid_columns( 'uuid' );
+__PACKAGE__->set_primary_key( 'uuid' );
+
 __PACKAGE__->has_many(   'examinee' => 'Shinsa::Schema::Result::Examinee', 'exam' );
 __PACKAGE__->has_many(   'cohort'   => 'Shinsa::Schema::Result::Cohort',   'exam' );
 __PACKAGE__->has_many(   'official' => 'Shinsa::Schema::Result::Official', 'exam' );
 __PACKAGE__->has_many(   'examiner' => 'Shinsa::Schema::Result::Examiner', 'exam' );
-__PACKAGE__->uuid_columns( 'uuid' );
-__PACKAGE__->set_primary_key( 'uuid' );
 
 1;

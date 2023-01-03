@@ -12,7 +12,7 @@ has examiner => ( is => 'rw' );
 has start    => ( is => 'rw' );
 has stop     => ( is => 'rw' );
 
-__PACKAGE__->load_components( qw( InflateColumn::DateTime Core ));
+__PACKAGE__->load_components( qw( UUIDColumns InflateColumn::DateTime Core ));
 __PACKAGE__->table( 'panel_examiner' );
 __PACKAGE__->add_columns(
 	uuid     => { data_type => 'string' },
@@ -21,9 +21,11 @@ __PACKAGE__->add_columns(
 	start    => { data_type => 'datetime' },
 	stop     => { data_type => 'datetime' }
 );
-__PACKAGE__->belongs_to(   'panel'          => 'Shinsa::Schema::Result::Panel' );
-__PACKAGE__->belongs_to(   'examiner'       => 'Shinsa::Schema::Result::Examiner' );
+
 __PACKAGE__->uuid_columns( 'uuid' );
 __PACKAGE__->set_primary_key( 'uuid' );
+
+__PACKAGE__->belongs_to(   'panel'          => 'Shinsa::Schema::Result::Panel' );
+__PACKAGE__->belongs_to(   'examiner'       => 'Shinsa::Schema::Result::Examiner' );
 
 1;

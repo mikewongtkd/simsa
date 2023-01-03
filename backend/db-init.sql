@@ -14,13 +14,13 @@ create table user (
 	id text not null,
 	fname text not null,
 	lname text not null,
-	email text not null,
+	login text not null,
 	dob text,
 	gender text,
 	rank text_json,
 	noc text,
 	info text_json,
-	foreign key( email ) references login( email )
+	foreign key( login ) references login( uuid )
 );
 
 drop table if exists examination;
@@ -96,7 +96,7 @@ create table examinee (
 	uuid text primary key,
 	user text not null,
 	exam text not null,
-	id int,
+	id text not null,
 	cohort text,
 	info text_json,
 	foreign key( user ) references user( uuid ),
