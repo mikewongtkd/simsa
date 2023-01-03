@@ -23,8 +23,8 @@ __PACKAGE__->add_columns(
 __PACKAGE__->uuid_columns( 'uuid' );
 __PACKAGE__->set_primary_key( 'uuid' );
 
-__PACKAGE__->belongs_to(   'examination'    => 'Shinsa::Schema::Result::Examination',   'exam' );
-__PACKAGE__->has_one(      'user'           => 'Shinsa::Schema::Result::User',          'user' );
+__PACKAGE__->belongs_to(   'exam'           => 'Shinsa::Schema::Result::Examination',   'exam' );
+__PACKAGE__->belongs_to(   'user'           => 'Shinsa::Schema::Result::User',          'user' );
 __PACKAGE__->has_many(     'scores'         => 'Shinsa::Schema::Result::Score',         'score' );
 __PACKAGE__->has_many(     'panelexaminers' => 'Shinsa::Schema::Result::PanelExaminer', 'examiner' );
 __PACKAGE__->many_to_many( 'panels'         => 'panelexaminers',                        'panel' );

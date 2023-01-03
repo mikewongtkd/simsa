@@ -23,7 +23,7 @@ __PACKAGE__->add_columns(
 __PACKAGE__->uuid_columns( 'uuid' );
 __PACKAGE__->set_primary_key( 'uuid' );
 
-__PACKAGE__->add_unique_constraint( 'email' );
+__PACKAGE__->add_unique_constraint([ 'email' ]);
 __PACKAGE__->has_many( 'user' => 'Shinsa::Schema::Result::User', 'uuid' );
 
 1;

@@ -10,7 +10,7 @@ has uuid   => ( is => 'rw' );
 has id     => ( is => 'rw' );
 has fname  => ( is => 'rw' );
 has lname  => ( is => 'rw' );
-has email  => ( is => 'rw' );
+has login  => ( is => 'rw' );
 has dob    => ( is => 'rw' );
 has gender => ( is => 'rw' );
 has rank   => ( is => 'rw' );
@@ -24,7 +24,7 @@ __PACKAGE__->add_columns(
 	id     => { data_type => 'string' },
 	fname  => { data_type => 'string' },
 	lname  => { data_type => 'string' },
-	email  => { data_type => 'string' },
+	login  => { data_type => 'string' },
 	dob    => { data_type => 'date' },
 	gender => { data_type => 'string' },
 	rank   => { data_type => 'string', is_nullable => 1 },
@@ -35,10 +35,9 @@ __PACKAGE__->add_columns(
 __PACKAGE__->uuid_columns( 'uuid' );
 __PACKAGE__->set_primary_key( 'uuid' );
 
-__PACKAGE__->belongs_to( 'login'       => 'Shinsa::Schema::Result::Login', 'email' );
-__PACKAGE__->belongs_to( 'examination' => 'Shinsa::Schema::Result::Examination' );
-__PACKAGE__->belongs_to( 'examinee'    => 'Shinsa::Schema::Result::Examinee' );
-__PACKAGE__->belongs_to( 'examiner'    => 'Shinsa::Schema::Result::Examiner' );
-__PACKAGE__->belongs_to( 'official'    => 'Shinsa::Schema::Result::Official' );
+__PACKAGE__->belongs_to( 'login'       => 'Shinsa::Schema::Result::Login',    'login' );
+__PACKAGE__->might_have( 'examinee'    => 'Shinsa::Schema::Result::Examinee', 'user' );
+__PACKAGE__->might_have( 'examiner'    => 'Shinsa::Schema::Result::Examiner', 'user' );
+__PACKAGE__->might_have( 'official'    => 'Shinsa::Schema::Result::Official', 'user' );
 
 1;
