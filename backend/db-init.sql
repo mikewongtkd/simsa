@@ -98,6 +98,7 @@ create table examinee (
 	exam text not null,
 	id text not null,
 	cohort text,
+	results text_json,
 	info text_json,
 	foreign key( user ) references user( uuid ),
 	foreign key( exam ) references examination( uuid ),
