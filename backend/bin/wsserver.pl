@@ -4,6 +4,7 @@ use lib qw( lib /usr/local/shinsa/lib );
 use Mojolicious::Lite;
 use JSON::XS;
 use Shinsa::Config;
+use Shinsa::Request::Manager;
 use Try::Tiny;
 use Data::Dumper;
 
@@ -19,7 +20,7 @@ websocket '/shinsa/api/v1/:test/:id' => sub {
 	my $self       = shift;
 	my $test       = $self->param( 'test' );
 	my $id         = $self->param( 'id' );
-	my $manager    = new Shinsa::RequestManager( $test );
+	my $manager    = new Shinsa::Request::Manager( $test );
 
 	$self->inactivity_timeout( 3600 ); # 1 hour
 
