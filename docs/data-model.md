@@ -3,7 +3,7 @@
 ## Examination
 
 - has many Examinees
-- has many Cohorts
+- has many Groups
 - might have a Schedule
 - has many Officials
 - has many Examiners
@@ -22,7 +22,7 @@
 - belongs to an Examination
 - has many Examiners
 - many to many Examiners
-- has many Cohorts
+- has many Groups
 
 ## PanelExaminer
 
@@ -48,11 +48,11 @@
 
 - has many Users
 
-## Cohort
+## Group
 
 - belongs to an Examination
-- belongs to a Cohort
-- has many Cohorts
+- belongs to a Group
+- has many Groups
 - has many Examinees
 
 ## Score
@@ -63,6 +63,6 @@
 ## Examinee
 
 - belongs to an Examination
-- belongs to a Cohort
+- belongs to a Group
 - has many Scores
 - is a (has one) User

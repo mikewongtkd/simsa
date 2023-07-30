@@ -22,7 +22,7 @@ __PACKAGE__->add_columns(
 	exam    => { data_type => 'string' },
 	id      => { data_type => 'string' },
 	cohort  => { data_type => 'string' },
-	results => { data_type => 'string', serializer_class => 'JSON', serializer_options => { allow_blessed => 1, convert_blessed => 1, pretty => 0 }}
+	results => { data_type => 'string', serializer_class => 'JSON', serializer_options => { allow_blessed => 1, convert_blessed => 1, pretty => 0 }},
 	info    => { data_type => 'string', serializer_class => 'JSON', serializer_options => { allow_blessed => 1, convert_blessed => 1, pretty => 0 }}
 );
 

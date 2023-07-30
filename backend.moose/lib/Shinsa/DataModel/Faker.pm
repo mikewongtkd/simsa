@@ -1,14 +1,15 @@
 package Shinsa::DataModel::Faker;
 
 use lib qw( /usr/local/shinsa/lib );
-use Math::Random qw( random_beta );
-use Date::Manip;
 use Data::Faker;
 use Data::Faker::USNames;
+use Date::Manip;
 use Digest::SHA1 qw( sha1_hex );
-use UUID;
-use POSIX qw( ceil floor round );
 use JSON::XS;
+use List::MoreUtils qw( part );
+use Math::Random qw( random_beta );
+use POSIX qw( ceil floor round );
+use UUID;
 
 our $settings = {
 	age => {
@@ -36,11 +37,24 @@ sub init {
 # ============================================================
 sub cohort {
 # ============================================================
-	my $self    = shift;
-	my $rank    = shift;
-	my $users   = shift;
-	my $fake    = $self->{ faker };
-	my $uuid    = UUID::uuid();
+	my $self        = shift;
+	my $exam        = shift;
+	my $rank        = shift;
+	my $panel       = shift;
+	my $parent      = shift;
+	my $fake        = $self->{ faker };
+	my $description = sprintf( "%s Dan Promotion", _ordinal( $rank ));
+	my $uuid        = UUID::uuid();
+
+	return {
+		uuid        => $uuid,
+		exam        => $exam->{ uuid },
+		panel       => $panel->{ uuid },
+		location    => "Main training area",
+		name        => $description,
+		description => $description,
+		parent      => $parent->{ uuid }
+	};
 }
 
 # ============================================================
@@ -79,10 +93,17 @@ sub examinee {
 	my $user    = shift;
 	my $exam    = shift;
 	my $cohort  = shift;
-	my $rank    = shift;
 	my $fake    = $self->{ faker };
 	my $uuid    = UUID::uuid();
 	my $id      = sprintf( '0%d%6d', int( $rank ), int( rand() * 999999 ));
+
+	return {
+		uuid   => $uuid,
+		user   => $user->{ uuid },
+		exam   => $exam->{ uuid },
+		id     => $id,
+		cohort => $cohort->{ uuid },
+	};
 }
 
 # ============================================================
@@ -99,6 +120,89 @@ sub examiner {
 		user        => $user->{ uuid },
 		exam        => $exam->{ uuid },
 	};
+}
+
+# ============================================================
+sub group_examinees_into_cohorts {
+# ============================================================
+	my $self        = shift;
+	my $users       = shift;
+	my $examination = shift;
+	my $count       = shift;
+	my $examinees   = [];
+	my $cohorts     = [];
+	my $ranks       = {};
+	my $groupby     = {};
+
+	foreach my $i ($count->{ staff } .. $count->{ users }) {
+		my $user = $users->[ $i ];
+		my ($highest) = sort { $b->{ rank } <=> $a->{ rank } } @{$user->{ rank }};
+		push @{$ranks->{ $highest->{ rank }}}, $user;
+	}
+
+	foreach my $rank (sort keys %$ranks) {
+		my $i      = $rank % $count->{ panels };
+		my $users  = $ranks->{ $rank };
+		my $cohort = undef;
+		my $j      = 1;
+		my $k      = -1;
+		my $n      = $count->{ cohort }{ size };
+		my $groups = [ part { int( ++$k / $n )} @$users ];
+
+		foreach my $group (@$groups) {
+			if( exists $groupby->{ $rank }) {
+				my $parent = $groupby->{ $rank };
+				$cohort = $self->cohort( $examination, $rank, $panels->[ $i ], $parent );
+				$cohort->{ name } = "Group $j";
+				push @{ $parent->{ _children }}, $cohort;
+				$j++;
+
+			} else {
+				$groupby->{ $rank } = $self->cohort( $examination, $rank, $panels->[ $i ], { uuid => '' });
+			}
+			foreach my $user (@$group) {
+				my $examinee = $self->examinee( $user, $examination, $cohort );
+				push @$examinees, [ @{$examinee{ qw( uuid user exam id cohort )}];
+			}
+		}
+	}
+	foreach my $rank (sort { $a <=> $b } keys $groupby) {
+		my $cohort = $groupby->{ rank };
+		push @$cohorts, [ @{$cohort{ qw( uuid exam panel location name description parent ) }}];
+		push @$cohorts, map { [ @{ $_{ qw( uuid exam panel location name description parent )}}]} @{ $cohort->{ _children }};
+	}
+
+	return ($examinees, $cohorts);
+}
+
+# ============================================================
+sub group_examiners_into_panels {
+# ============================================================
+	my $self            = shift;
+	my $users           = shift;
+	my $examination     = shift;
+	my $count           = shift;
+	my $examiners       = [];
+	my $panels          = [];
+	my $panel_examiners = [];
+
+	for my $i ( 1 .. $count->{ panels }) {
+		my $panel = $self->panel( $examination );
+		$panel->{ name } = "Panel $i";
+		push @$panels, [ @{$panel{ qw( uuid exam name )}}];
+	}
+	for my $i ( 1 .. $count->{ examiners } ) {
+		my $user     = $users->[ $i ];
+		my $examiner = $self->examiner( $user, $examination );
+		push @$examiners, [ @{$examiner{ qw( uuid user exam )}}];
+
+		my $j        = ($i % $count->{ panels });
+		my $panel    = $panels->[ $j ];
+		my $panex    = $self->panel_examiner( $panel, $examiner );
+		push @$panel_examiners, [ @{$panex{ qw( uuid panel examiner start stop )}}];
+	}
+
+	return ($examiners, $panels, $panel_examiners);
 }
 
 # ============================================================
@@ -122,6 +226,39 @@ sub login {
 		_fname  => $fname,
 		_lname  => $lname,
 		_dob    => $dob,
+	};
+}
+
+# ============================================================
+sub panel {
+# ============================================================
+	my $self   = shift;
+	my $exam   = shift;
+	my $fake   = $self->{ faker };
+	my $uuid   = UUID::uuid();
+
+	return {
+		uuid => $uuid,
+		exam => $exam->{ uuid },
+		name => "Panel 1"
+	};
+}
+
+# ============================================================
+sub panel_examiner {
+# ============================================================
+	my $self     = shift;
+	my $panel    = shift;
+	my $examiner = shift;
+	my $fake     = $self->{ faker };
+	my $uuid     = UUID::uuid();
+
+	return {
+		uuid     => $uuid,
+		panel    => $panel->{ uuid },
+		examiner => $examiner->{ uuid },
+		start    => '',
+		stop     => ''
 	};
 }
 
@@ -179,6 +316,14 @@ sub _birthday {
 }
 
 # ============================================================
+sub _date {
+# ============================================================
+	my $date = new Date::Manip::Date( 'now' );
+	$date->convert( 'utc' );
+	return $date;
+}
+
+# ============================================================
 sub _delta_days {
 # ============================================================
 	my $days = shift;
@@ -192,6 +337,18 @@ sub _delta_years {
 	my $years = shift;
 	my $text  = sprintf( "%.3f years", $years );
 	return new Date::Manip::Delta( $text );
+}
+
+# ============================================================
+sub _ordinal {
+# ============================================================
+	my $num   = shift;
+	my $d1 = $num % 10;
+	my $d2 = $num % 100;
+	if( $d1 == 1 && $d2 != 11 ) { return $num . 'st'; }
+	if( $d1 == 2 && $d2 != 12 ) { return $num . 'nd'; }
+	if( $d1 == 3 && $d2 != 13 ) { return $num . 'rd'; }
+	return $num . 'th';
 }
 
 # ============================================================
@@ -230,14 +387,6 @@ sub _rank_history {
 	}
 
 	return $history;
-}
-
-# ============================================================
-sub _date {
-# ============================================================
-	my $date = new Date::Manip::Date( 'now' );
-	$date->convert( 'utc' );
-	return $date;
 }
 
 1;
