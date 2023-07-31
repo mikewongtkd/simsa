@@ -24,10 +24,8 @@
 - many to many Examiners
 - has many Groups
 
-## PanelExaminer
-
-- belongs to a Panel
-- belongs to an Examiner
+### Additional Fields
+- history: denotes when Examiners join or leave and when Groups are assigned or removed
 
 ## Examiner
 
