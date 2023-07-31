@@ -10,6 +10,9 @@ use base qw( Shinsa::DBO );
 EOF
 
 foreach my $module (@modules) {
+	my $copy = $template;
+	$copy =~ s/<module>/$module/g;
 	open my $fh, '>', "$module.pm" or die $!;
+	print $fh $copy;
 	close $fh
 }
