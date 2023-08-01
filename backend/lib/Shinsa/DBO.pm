@@ -9,7 +9,8 @@ use List::Util qw( any );
 use UUID;
 use vars '$AUTOLOAD';
 
-our $dbh = undef;
+our $dbh  = undef;
+our $json = new JSON::XS();
 
 # ============================================================
 sub new {
@@ -51,7 +52,7 @@ sub get {
 	my $self  = shift;
 	my $query = shift;
 
-	$query = (split /::/, $query)[ -1 ];
+	$query = _class( $query );
 
 	if( $query eq 'DESTROY' ) {
 		$self->SUPER::DESTROY();
@@ -61,28 +62,47 @@ sub get {
 	my $plural = noun( $query )->is_plural;
 	my $key    = $plural ? noun( $query )->singular : $query;
 
-	unless( exists $self->{ data }{ $key }) {
-		warn "Key $key not in $self->{ class } object $!";
-		return;
-	}
+	# ===== RETURN DATA OR INTERNAL REFRENCE IF IT EXISTS
+	if( exists $self->{ data }{ $key }) {
+		my $results = $self->{ data }{ $key };
 
-	my $results = $self->{ data }{ $key };
+		# ===== IF REQUESTED AS A PLURAL, RETURN AN ARRAY
+		if( $plural ) {
+			if( ref $results eq 'ARRAY' ) {
+				if( any { _is_uuid( $_ ) } @$results ) {
+					return [ map { _is_uuid( $_ ) ? _get( $_ ) : $_ } @$results ];
+				}
+				return $results;
 
-	if( $plural ) {
-		if( ref $results eq 'ARRAY' ) {
-			if( any { _is_uuid( $_ ) } @$results ) {
-				return [ map { _is_uuid( $_ ) ? _get( $_ ) : $_ } @$results ];
+			} else {
+				$results = _get( $results ) if( _is_uuid( $results ));
+				return [ $results ];
 			}
+
+		# ===== IF REQUESTED AS SINGULAR, RETURN AN A SINGLE VALUE OR DOCUMENT
+		} else {
+			$results = shift @$results if( ref $results eq 'ARRAY' );
+			$results = _get( $results ) if( _is_uuid( $results ));
 			return $results;
+		}
+
+	# ===== RETURN EXTERNAL REFRENCE IF THEY EXISTS
+	} else {
+		my $mine       = ucfirst( $key );
+		my $ref        = lc _class( ref $self );
+		my $me         = $self->uuid();
+		my $references = _find_references( $mine, $ref, $me );
+
+		if( int( @$references ) == 0 ) {
+			warn "Key $key not in $self->{ class } object $!";
+			return;
+
+		} elsif( $plural ) {
+			return $references;
 
 		} else {
-			$results = _get( $results ) if( _is_uuid( $results ));
-			return [ $results ];
+			return shift @$references;
 		}
-	} else {
-		$results = shift @$results if( ref $results eq 'ARRAY' );
-		$results = _get( $results ) if( _is_uuid( $results ));
-		return $results;
 	}
 }
 
@@ -97,10 +117,13 @@ sub read {
 # ============================================================
 sub set {
 # ============================================================
-	my $self  = shift;
-	my $key   = shift;
-	my $value = shift;
-	my $ref   = ref $value;
+	my $self   = shift;
+	my $key    = shift;
+	my $value  = shift;
+	my $ref    = ref $value;
+	my $plural = noun( $key )->is_plural;
+
+	$key = noun( $key )->is_plural ? noun( $key )->singular : $key;
 
 	if((! $ref) || $ref eq 'HASH' || $ref eq 'ARRAY' ) {
 		$self->{ data }{ $key } = $value;
@@ -146,7 +169,7 @@ sub AUTOLOAD {
 
 	if( $n == 1 ) {
 		my $value = shift;
-		my $field = (split /::/, $AUTOLOAD)[ -1 ];
+		my $field = _class( $AUTOLOAD );
 		$self->set( $field, $value );
 
 	} elsif( $n > 1 ) {
@@ -161,7 +184,7 @@ sub AUTOLOAD {
 sub _class {
 # ============================================================
 	my $class = shift;
-	$class =~ s/^Shinsa:://;
+	$class = (split /::/, $class)[ -1 ];
 	return $class;
 }
 
@@ -187,6 +210,48 @@ sub _exists {
 }
 
 # ============================================================
+sub _factory {
+# ============================================================
+	my $document = shift;
+	my $class    = sprintf( "Shinsa::%s", ucfirst $document->{ class });
+	my $data     = $json->decode( $document->{ data });
+	my $result   = bless { uuid => $document->{ uuid }, class => $document->{ class }, data => $data }, $class;
+
+	return $result;
+}
+
+# ============================================================
+sub _find_references {
+# ============================================================
+	_db_connect();
+	my $mine  = shift;
+	my $ref   = shift;
+	my $me    = shift;
+
+	# ===== SEARCH FOR DIRECT REFERENCES
+	# Things that are mine that refer back to me
+	my $sth   = $Shinsa::DBO::dbh->prepare( "select * from document where class=? and json_extract( document.data, ? ) = ?" );
+	$sth->execute( $mine, "\$.$ref", $me );
+
+	my $results = [];
+
+	while( my $document = $sth->fetchrow_hashref()) {
+		push @$results, _factory( $document );
+	}
+
+	# ===== SEARCH FOR REFERENCES IN JOIN DOCUMENTS
+	# Joins that refer to me and have things that are mine
+	my $sth   = $Shinsa::DBO::dbh->prepare( "select * from document where class='Join' and json_extract( document.data, ? ) = ? and json_extract( document.data, ? ) is not null" );
+	$sth->execute( "\$.$ref", $me, "\$.$mine" );
+
+	while( my $document = $sth->fetchrow_hashref()) {
+		push @$results, _factory( $document );
+	}
+
+	return $results;
+}
+
+# ============================================================
 sub _get {
 # ============================================================
 	_db_connect();
@@ -199,15 +264,10 @@ sub _get {
 	}
 
 	my $sth    = $Shinsa::DBO::dbh->prepare( 'select * from document where uuid=?' );
-	my $json   = new JSON::XS();
 	$sth->execute( $uuid );
 
 	my $document = $sth->fetchrow_hashref();
-	my $class    = sprintf( "Shinsa::%s", ucfirst $document->{ class });
-	my $data     = $json->decode( $document->{ data });
-	my $result   = bless { uuid => $uuid, class => $document->{ class }, data => $data }, $class;
-
-	return $result;
+	return _factory( $document );
 }
 
 # ============================================================
@@ -215,7 +275,6 @@ sub _put {
 # ============================================================
 	_db_connect();
 	my $document = shift;
-	my $json     = new JSON::XS();
 	my $uuid     = $document->{ uuid };
 	my $class    = $document->{ class };
 	my $data     = $json->canonical->encode( $document->{ data });
@@ -254,7 +313,6 @@ sub _update {
 # ============================================================
 	_db_connect();
 	my $document = shift;
-	my $json     = new JSON::XS();
 	my $uuid     = $document->{ uuid };
 	my $data     = $json->canonical->encode( $document->{ data });
 

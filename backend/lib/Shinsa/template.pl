@@ -1,6 +1,6 @@
 #! /usr/bin/perl
 
-my @modules = qw( Examination Schedule Official Panel Examiner User Login Group Score Examinee );
+my @modules = qw( Examination Schedule User Login Group Score Join );
 
 our $template = <<EOF;
 package Shinsa::<module>;

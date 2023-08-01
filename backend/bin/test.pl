@@ -2,18 +2,14 @@
 
 use Data::Dumper;
 use lib qw( lib );
-use Shinsa::DBO;
-use Shinsa::Examination;
-use Shinsa::Examinee;
-use Shinsa::Examiner;
-use Shinsa::Group;
-use Shinsa::Login;
-use Shinsa::Official;
-use Shinsa::Panel;
-use Shinsa::Schedule;
-use Shinsa::Score;
-use Shinsa::User;
+use Shinsa;
 
+my $login = Shinsa::Login->read( '4FE052D1-3443-460C-8071-108079D7D9A9' );
+my $user  = $login->users();
+
+print Dumper $user;
+
+exit();
 my $user = Shinsa::User->read( '5E5AED3D-9039-4C85-A305-FDD51FA62D0E' );
 
 my $login = $user->login();
