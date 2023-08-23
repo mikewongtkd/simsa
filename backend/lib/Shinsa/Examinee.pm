@@ -1,4 +1,4 @@
 package Shinsa::Examinee;
-use base qw( Shinsa::DBO );
+use base qw( Shinsa::Role );
 
 1;

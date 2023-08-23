@@ -18,8 +18,7 @@ sub new {
 	my ($class) = map { ref || $_ } shift;
 	my $table   = _class( $class );
 	my $self    = bless {}, $class;
-
-	my $n = int( @_ );
+	my $n       = int( @_ );
 
 	if( $n == 0 ) {
 		$self->{ uuid }  = UUID::uuid();
@@ -40,6 +39,7 @@ sub new {
 		$self->{ uuid }  = UUID::uuid();
 		$self->{ class } = $table;
 		$self->{ data }  = { @_ };
+		$self->{ uuid }  = $self->{ data }{ uuid } if( exists $self->{ data }{ uuid });
 	}
 
 	$self->write();
@@ -52,7 +52,7 @@ sub get {
 	my $self  = shift;
 	my $query = shift;
 
-	$query = _class( $query );
+	$query = _field( $query );
 
 	if( $query eq 'DESTROY' ) {
 		$self->SUPER::DESTROY();
@@ -89,7 +89,7 @@ sub get {
 	# ===== RETURN EXTERNAL REFRENCE IF THEY EXISTS
 	} else {
 		my $mine       = ucfirst( $key );
-		my $ref        = lc _class( ref $self );
+		my $ref        = lc _field( ref $self );
 		my $me         = $self->uuid();
 		my $references = _find_references( $mine, $ref, $me );
 
@@ -104,6 +104,8 @@ sub get {
 			return shift @$references;
 		}
 	}
+
+	return undef;
 }
 
 # ============================================================
@@ -169,7 +171,7 @@ sub AUTOLOAD {
 
 	if( $n == 1 ) {
 		my $value = shift;
-		my $field = _class( $AUTOLOAD );
+		my $field = _field( $AUTOLOAD );
 		$self->set( $field, $value );
 
 	} elsif( $n > 1 ) {
@@ -184,14 +186,16 @@ sub AUTOLOAD {
 sub _class {
 # ============================================================
 	my $class = shift;
-	$class = (split /::/, $class)[ -1 ];
+	my @namespaces = grep { ! /^Shinsa$/ } split /::/, $class;
+
+	$class = join( '::', @namespaces );
 	return $class;
 }
 
 # ============================================================
 sub _db_connect {
 # ============================================================
-	$Shinsa::DBO::dbh = DBI->connect( 'DBI:SQLite:dbname=db.sqlite' ) if( ! defined $Shinsa::DBO::dbh );
+	$Shinsa::DBO::dbh = DBI->connect( 'dbi:SQLite:db.sqlite' ) if( ! defined $Shinsa::DBO::dbh );
 }
 
 # ============================================================
@@ -218,6 +222,14 @@ sub _factory {
 	my $result   = bless { uuid => $document->{ uuid }, class => $document->{ class }, data => $data }, $class;
 
 	return $result;
+}
+
+# ============================================================
+sub _field {
+# ============================================================
+	my $field = shift;
+	$field = (split /::/, $field)[ -1 ];
+	return $field;
 }
 
 # ============================================================
