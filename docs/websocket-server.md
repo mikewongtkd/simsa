@@ -1,6 +1,6 @@
 # WebSocket Server
 
-## Protocol
+## Security Policy
 
 ### Data model
 
@@ -16,22 +16,36 @@
 | Patch  | Update an object     |
 | Delete | Delete an object     |
 
-### Permissions
+### Roles
 
-| Class          | Post             | Get/List | Patch/Delete     |
-|----------------|------------------|----------|------------------|
-| PromotionTest  | Ad               | Public   | Ad 1             |
-| Official       | Ad 1             | Of       | Ad 1             |
-| Panel          | Ad 1             | Of       | Ad 1             |
-| PromotionGroup | Ad 1, CO 2       | Of       | Ad 1, CO 2       |
-| Examiner       | Ad 1             | Of       | Ad 1, CO 3       |
-| Examinee       | Ad 1, CO 3       | Of, Self | Ad 1, CO 3       |
-| Score          | Ad 1, CO 4, Ex 4 | Of       | Ad 1, CO 4, Ex 4 |
-| User           | Ad 1             | Of, Self | Ad 1             |
+- Administrator
+- Official
+- ComputerOperator
+- Examiner
+- Public
+- SuperUser
 
-**Ad:** Administrator, **CO:** Computer Operator, **Ex:** Examiner
+#### SuperUser 
 
-1. Poster or Deputy
-2. Assigned to the court
-3. Assigned to the court, and for an object assigned to the court or staging
-4. Assigned to the court, and for an Examinee assigned to the court
+*SuperUser* has complete access to the entire system.
+
+#### Administrator
+
+*Administrator* has read-only access to the entire system, as well as write access to an Exam.
+
+#### Official
+
+*Official* has read-only access to the entire system.
+
+#### ComputerOperator
+
+*ComputerOperator* has read-only access to an Exam, as well as write access to Groups
+
+
+#### Examiner
+
+*Examiner* has read-only access to an Exam, and write access to the Exam Scores.
+
+####
+
+## Protocol
