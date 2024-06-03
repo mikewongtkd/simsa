@@ -94,7 +94,6 @@ sub get {
 		my $references = _find_references( $mine, $ref, $me );
 
 		if( int( @$references ) == 0 ) {
-			warn "Key $key not in $self->{ class } object $!";
 			return;
 
 		} elsif( $plural ) {
@@ -106,6 +105,23 @@ sub get {
 	}
 
 	return undef;
+}
+
+# ============================================================
+sub json {
+# ============================================================
+	my $self   = shift;
+	my $clone  = $self->clone();
+	my $uuid   = $clone->uuid();
+
+	delete $clone->{ uuid }; # Remove UUID prior to pruning
+	
+	$clone = unbless( $clone );
+	$clone = _prune( $clone );
+
+	$clone->{ uuid } = $uuid; # Add UUID back in prior to writing to DB
+
+	return $clone;
 }
 
 # ============================================================
@@ -145,21 +161,14 @@ sub uuid {
 sub write {
 # ============================================================
 	my $self   = shift;
-	my $clone  = $self->clone();
-	my $uuid   = $clone->uuid();
+	my $data   = $self->json();
+	my $uuid   = $data->uuid();
 	my $exists = _exists( $uuid );
 
-	delete $clone->{ uuid }; # Remove UUID prior to pruning
-	
-	$clone = unbless( $clone );
-	$clone = _prune( $clone );
-
-	$clone->{ uuid } = $uuid; # Add UUID back in prior to writing to DB
-
 	if( $exists ) {
-		_update( $clone );
+		_update( $data );
 	} else {
-		_put( $clone );
+		_put( $data );
 	}
 }
 
@@ -275,7 +284,7 @@ sub _get {
 		return undef;
 	}
 
-	my $sth    = $Shinsa::DBO::dbh->prepare( 'select * from document where uuid=?' );
+	my $sth = $Shinsa::DBO::dbh->prepare( 'select * from document where uuid=?' );
 	$sth->execute( $uuid );
 
 	my $document = $sth->fetchrow_hashref();

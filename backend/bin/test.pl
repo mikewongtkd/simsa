@@ -6,7 +6,7 @@ use Shinsa;
 
 my $examinee = Shinsa::Examinee->read( 'F96C6C3F-3E6F-4E28-906F-30CC623133E3' );
 
-printf "%s %s\n", $examinee->user->fname(), $examinee->user->lname();
+printf "%s %s\n", $examinee->fname(), $examinee->lname();
 
 print Dumper $examinee->exam();
 

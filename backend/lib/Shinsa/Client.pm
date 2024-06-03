@@ -21,19 +21,12 @@ sub init {
 	my $self       = shift;
 	my $websocket  = shift;
 	my $connection = $websocket->tx();
-	my $exam       = $websocket->param( 'exam' );
-	my $panel      = $websocket->param( 'panel' );
-	my $role       = $websocket->param( 'role' );
+	my $uuid       = $websocket->param( 'uuid' );
 	my $sessid     = $websocket->cookie( 'shinsa-session' );
 	my $id         = sha1_hex( $connection );
 
-	$role =~ s/\+/ /g;
-
-	$self->{ id }         = $id;
-	$self->{ exam }       = $exam;
-	$self->{ panel }      = $panel;
+	$self->{ uuid }       = $uuid;
 	$self->{ sessid }     = $sessid;
-	$self->{ role }       = $role;
 	$self->{ device }     = $connection;
 	$self->{ websocket }  = $websocket;
 	$self->{ status }     = 'strong'; 
@@ -56,7 +49,7 @@ sub description {
 sub cid {
 # ============================================================
 	my $self = shift;
-	return sprintf( "%s-%s", substr( $self->sessid(), 0, 4 ), substr( $self->id(), 0, 4 ));
+	return sprintf( "%s-%s", substr( $self->sessid(), 0, 4 ), substr( $self->uuid(), 0, 4 ));
 }
 
 # ============================================================
@@ -77,8 +70,7 @@ sub jid {
 # ============================================================
 	my $self = shift;
 	my $role = $self->role();
-	return undef unless $role =~ /^judge/i;
-	my ($jid) = $role =~ /^judge(\d+)$/i;
+	return undef unless $role =~ /^examiner/i;
 	return $jid;
 }
 
@@ -137,7 +129,7 @@ sub status {
 sub device     { my $self = shift; return $self->{ device };     }
 sub exam       { my $self = shift; return $self->{ exam };       }
 sub gid        { my $self = shift; return $self->{ gid };        }
-sub id         { my $self = shift; return $self->{ id };         }
+sub uuid       { my $self = shift; return $self->{ uuid };         }
 sub panel      { my $self = shift; return $self->{ panel };      }
 sub role       { my $self = shift; return $self->{ role };       }
 sub sessid     { my $self = shift; return $self->{ sessid };     }

@@ -62,10 +62,10 @@ sub clients {
 }
 
 # ============================================================
-sub judges {
+sub examiners {
 # ============================================================
 	my $self    = shift;
-	my @clients = grep { $_->role() =~ /^judge/i } sort { $a->role() cmp $b->role() || $a->cid() cmp $b->cid() } values %{ $self->{ client }};
+	my @clients = grep { $_->role() =~ /^examiners/i } sort { $a->role() cmp $b->role() || $a->cid() cmp $b->cid() } values %{ $self->{ client }};
 
 	return @clients;
 }

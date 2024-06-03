@@ -29,6 +29,11 @@
 - has many Groups
 - has many Examinees
 
+## Panel
+
+- belongs to an Examination
+- has many Examiners
+
 ### Score
 
 - belongs to an Examiner
@@ -49,7 +54,6 @@
 
 - belongs to an Examination
 - has many Panels
-- many to many Panels
 - is a (has one) User
 - has many Scores
 
