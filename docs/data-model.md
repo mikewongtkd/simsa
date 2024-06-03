@@ -2,7 +2,7 @@
 
 ## Core Classes
 
-### Examination
+### Exam
 
 - has many Examinees
 - has many Groups

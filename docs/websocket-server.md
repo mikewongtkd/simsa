@@ -8,13 +8,12 @@
 
 ### Actions
 
-| Action | Description          |
-| ------ | -------------------- |
-| Post   | Create a new object  |
-| Get    | Retrieve an object   |
-| List   | Retrieve all objects |
-| Patch  | Update an object     |
-| Delete | Delete an object     |
+| Action | Description                 |
+| ------ | --------------------------- |
+| Post   | Create/Update a new object  |
+| Get    | Retrieve an object          |
+| List   | Retrieve all objects        |
+| Delete | Delete an object            |
 
 ### Roles
 

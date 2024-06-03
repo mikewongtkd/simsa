@@ -6,11 +6,10 @@ use Shinsa;
 
 my $examinee = Shinsa::Examinee->read( 'F96C6C3F-3E6F-4E28-906F-30CC623133E3' );
 
-printf "%s %s\n", $examinee->fname(), $examinee->lname();
+printf "%s %s\n", $examinee->user->fname(), $examinee->user->lname();
 
 print Dumper $examinee->exam();
 
-exit();
 # ============================================================
 my $exam = new Shinsa::Exam();
 
@@ -20,14 +19,12 @@ my $examinee = new Shinsa::Examinee(
 	user => '5E5AED3D-9039-4C85-A305-FDD51FA62D0E'
 );
 
-exit();
 # ============================================================
 my $login = Shinsa::Login->read( '4FE052D1-3443-460C-8071-108079D7D9A9' );
 my $user  = $login->users();
 
 print Dumper $user;
 
-exit();
 # ============================================================
 my $user = Shinsa::User->read( '5E5AED3D-9039-4C85-A305-FDD51FA62D0E' );
 
