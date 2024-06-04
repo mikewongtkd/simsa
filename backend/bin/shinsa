@@ -13,30 +13,28 @@ our $json     = new JSON::XS();
 our $registry = new Shinsa::Client::Registry();
 our $manager  = new Shinsa::RequestManager();
 
-websocket '/shinsa/api/v1/:uuid' => sub {
+websocket '/shinsa/api/v1/:exam/:uuid/:roles' => sub {
 	my $self   = shift;
 	my $client = $registry->add( $self );
+	my $request = { type => 'user', action => 'connect', user => { sessid => $client->sessid(), uuid => $client->uuid(), role => $client->role() }};
+	$manager->broadcast( $client, $request, $registry );
 
 	$self->inactivity_timeout( 3600 ); # 1 hour
 	$client->ping->start();
 
-	my $request = { type => 'user', action => 'connect', user => { sessid => $client->sessid(), id => $client->id(), role => $client->role() }};
-	$registry->remove( $client );
-	$manager->broadcast_user_update( $request, $client->group());
-
 	# ----------------------------------------
 	$self->on( message => sub {
 	# ----------------------------------------
-		try { $manager->handle( $request, $client->group()); }
+		try { $manager->handle( $client, $request, $registry )); }
 		catch { $client->send({ json => { error => "Error while processing request: $_\n", request => $request }}); }
 	});
 
 	# ----------------------------------------
 	$self->on( finish => sub {
 	# ----------------------------------------
-		my $request = { type => 'user', action => 'disconnect', user => { sessid => $client->sessid(), id => $client->id(), role => $client->role() }};
+		my $request = { type => 'user', action => 'disconnect', user => { sessid => $client->sessid(), uuid => $client->uuid(), role => $client->role() }};
 		$registry->remove( $client );
-		$manager->broadcast_user_update( $request, $client->group());
+		$manager->broadcast( $client, $request, $registry );
 		$client->ping->quit();
 	});
 }

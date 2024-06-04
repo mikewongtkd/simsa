@@ -62,7 +62,8 @@ sub get {
 	my $plural = noun( $query )->is_plural;
 	my $key    = $plural ? noun( $query )->singular : $query;
 
-	# ===== RETURN DATA OR INTERNAL REFRENCE IF IT EXISTS
+	# ===== RETURN DATA OR INTERNAL REFERENCE IF IT EXISTS
+	# Internal references are provided within the data (e.g. belongs-to relationships)
 	if( exists $self->{ data }{ $key }) {
 		my $results = $self->{ data }{ $key };
 
@@ -86,7 +87,8 @@ sub get {
 			return $results;
 		}
 
-	# ===== RETURN EXTERNAL REFRENCE IF THEY EXISTS
+	# ===== RETURN EXTERNAL REFERENCE IF THEY EXISTS
+	# External references are provied by "Join" documents (e.g. many-to-many relationships)
 	} else {
 		my $mine       = ucfirst( $key );
 		my $ref        = lc _field( ref $self );

@@ -1,7 +1,8 @@
 package Shinsa;
 use base Clone;
+use Shinsa::User;
+use Shinsa::Exam;
 use Data::Structure::Util qw( unbless );
-use Digest::SHA1 qw( sha1_hex );
 use JSON::XS;
 use Mojolicious::Controller;
 use Shinsa::Client::Ping;
@@ -21,11 +22,14 @@ sub init {
 	my $self       = shift;
 	my $websocket  = shift;
 	my $connection = $websocket->tx();
+	my $exam       = $websocket->param( 'exam' );
 	my $uuid       = $websocket->param( 'uuid' );
+	my $roles      = $websocket->param( 'roles' );
 	my $sessid     = $websocket->cookie( 'shinsa-session' );
-	my $id         = sha1_hex( $connection );
 
-	$self->{ uuid }       = $uuid;
+	$self->{ exam }       = Shinsa::DBO::_get( $exam );
+	$self->{ uuid }       = Shinsa::DBO::_get( $uuid );
+	$self->{ roles }      = $roles;
 	$self->{ sessid }     = $sessid;
 	$self->{ device }     = $connection;
 	$self->{ websocket }  = $websocket;
@@ -35,43 +39,11 @@ sub init {
 # ============================================================
 sub description {
 # ============================================================
-	my $self   = shift;
-	my $cid    = $self->cid();
-	my $role   = $self->role();
-	$role = join( ' ', map { ucfirst } split( /(?:\s)/, $role ));
-	my $jid = $self->jid();
-	$role = $jid == 0 ? 'Referee' : "Judge $jid" if defined $jid;
-
-	return sprintf( "%s (%s)", $role, $cid );
-}
-
-# ============================================================
-sub cid {
-# ============================================================
 	my $self = shift;
-	return sprintf( "%s-%s", substr( $self->sessid(), 0, 4 ), substr( $self->uuid(), 0, 4 ));
-}
-
-# ============================================================
-sub group {
-# ============================================================
-	my $self  = shift;
-	my $group = shift;
-
-	if( $group ) {
-		$self->{ group } = $group;
-		$self->{ gid }   = $group->id();
-	}
-	return $self->{ group };
-}
-
-# ============================================================
-sub jid {
-# ============================================================
-	my $self = shift;
+	my $uuid = $self->uuid();
 	my $role = $self->role();
-	return undef unless $role =~ /^examiner/i;
-	return $jid;
+
+	return sprintf( "%s (%s)", $roles, $uuid );
 }
 
 # ============================================================
@@ -99,15 +71,6 @@ sub ping {
 }
 
 # ============================================================
-sub Role {
-# ============================================================
-	my $self = shift;
-	my $role = $self->role();
-	$role = join( ' ', map { ucfirst } split /\s/, $role );
-	return $role;
-}
-
-# ============================================================
 sub send {
 # ============================================================
 	my $self = shift;
@@ -118,21 +81,19 @@ sub send {
 sub status {
 # ============================================================
 	my $self   = shift;
-	my $cid    = $self->cid();
 	my $ping   = exists $self->{ ping } ? $self->ping() : undef;
-	my $role   = $self->Role();
+	my $uuid   = $self->uuid();
+	my $role   = $self->role();
 	my $health = $ping ? $ping->health() : 'n/a';
 
-	return { cid => $cid, role => $role, health => $health };
+	return { uuid => $uuid, role => $role, health => $health };
 }
 
 sub device     { my $self = shift; return $self->{ device };     }
 sub exam       { my $self = shift; return $self->{ exam };       }
-sub gid        { my $self = shift; return $self->{ gid };        }
-sub uuid       { my $self = shift; return $self->{ uuid };         }
-sub panel      { my $self = shift; return $self->{ panel };      }
-sub role       { my $self = shift; return $self->{ role };       }
+sub roles      { my $self = shift; return $self->{ roles };      }
 sub sessid     { my $self = shift; return $self->{ sessid };     }
 sub timedelta  { my $self = shift; return $self->{ timedelta };  }
+sub uuid       { my $self = shift; return $self->{ uuid };       }
 
 1;

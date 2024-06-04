@@ -24,15 +24,12 @@
 
 ### Group
 
+- label
+
 - belongs to an Examination
 - belongs to a Group
 - has many Groups
-- has many Examinees
-
-## Panel
-
-- belongs to an Examination
-- has many Examiners
+- has many Examinees or Examiners
 
 ### Score
 

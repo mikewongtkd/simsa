@@ -17,7 +17,6 @@ sub init {
 # ============================================================
 	my $self = shift;
 	$self->{ client } = {};
-	$self->{ group }  = {};
 }
 
 # ============================================================
@@ -26,17 +25,11 @@ sub add {
 	my $self       = shift;
 	my $websocket  = shift;
 	my $client     = new Shinsa::Client( $websocket );
-	my $group      = new Shinsa::Client::Group( $websocket );
-	my $gid        = $group->id();
+	my $uuid       = $client->uuid();
 
 	$self->{ exam } = exists $self->{ exam } ? $self->{ exam } : $client->exam();
 
-	if( exists $self->{ group }{ $gid }) { $group = $self->{ group }{ $gid } } 
-	else                                 { $self->{ group }{ $gid } = $group; }
-
-	$group->add( $client );
-	$self->{ client }{ $id } = $client;
-	$client->group( $group );
+	$self->{ client }{ $uuid } = $client;
 
 	return $client;
 }
@@ -80,13 +73,6 @@ sub remove {
 	my $user = $client->description();
 	print STDERR "$user connection closed.\n";
 
-	$group = $client->group();
-
-	if( $group ) {
-		$group->remove( $id );
-		my $gid = $group->id();
-		delete $self->{ group }{ $gid } if( int( $group->clients()) == 0 );
-	}
 	delete $self->{ client }{ $id } if exists $self->{ client }{ $id };
 }
 
