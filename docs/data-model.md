@@ -4,6 +4,10 @@
 
 ### Exam
 
+<<<<<<< Updated upstream
+=======
+- has many Participants
+>>>>>>> Stashed changes
 - has many Groups
 - might have a Schedule
 - has many Officials
@@ -31,12 +35,19 @@
 
 ### Group
 
+<<<<<<< Updated upstream
 - label
 
 - belongs to an Examination
 - belongs to a Group
 - has many Groups
 - has many Examinees or Examiners
+=======
+- belongs to a Participant
+- belongs to a Group
+- has many Groups
+- has many Participants
+>>>>>>> Stashed changes
 
 ### Score
 
@@ -55,7 +66,10 @@
 
 #### Examiner
 
+<<<<<<< Updated upstream
 - belongs to a Group
+=======
+>>>>>>> Stashed changes
 - is a (has one) User
 - has many Scores
 
