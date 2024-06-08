@@ -21,7 +21,7 @@ sub new {
 	my $n       = int( @_ );
 
 	if( $n == 0 ) {
-		$self->{ uuid }  = UUID::uuid();
+		$self->{ uuid }  = lc( UUID::uuid());
 		$self->{ class } = $table;
 		$self->{ data }  = {};
 
@@ -36,7 +36,7 @@ sub new {
 		$self->{ data }  = {};
 
 	} elsif( $n > 2 ) { 
-		$self->{ uuid }  = UUID::uuid();
+		$self->{ uuid }  = lc( UUID::uuid());
 		$self->{ class } = $table;
 		$self->{ data }  = { @_ };
 		$self->{ uuid }  = $self->{ data }{ uuid } if( exists $self->{ data }{ uuid });
@@ -44,6 +44,23 @@ sub new {
 
 	$self->write();
 	return $self;
+}
+
+# ============================================================
+sub document {
+# ============================================================
+	my $self   = shift;
+	my $clone  = $self->clone();
+	my $uuid   = $clone->uuid();
+
+	delete $clone->{ uuid }; # Remove UUID prior to pruning
+	
+	$clone = unbless( $clone );
+	$clone = _prune( $clone );
+
+	$clone->{ uuid } = $uuid; # Add UUID back in prior to writing to DB
+
+	return $clone;
 }
 
 # ============================================================
@@ -60,7 +77,7 @@ sub get {
 	}
 
 	my $plural = noun( $query )->is_plural;
-	my $key    = $plural ? noun( $query )->singular : $query;
+	my $key    = lc( $plural ? noun( $query )->singular : $query );
 
 	# ===== RETURN DATA OR INTERNAL REFERENCE IF IT EXISTS
 	# Internal references are provided within the data (e.g. belongs-to relationships)
@@ -110,28 +127,17 @@ sub get {
 }
 
 # ============================================================
-sub json {
-# ============================================================
-	my $self   = shift;
-	my $clone  = $self->clone();
-	my $uuid   = $clone->uuid();
-
-	delete $clone->{ uuid }; # Remove UUID prior to pruning
-	
-	$clone = unbless( $clone );
-	$clone = _prune( $clone );
-
-	$clone->{ uuid } = $uuid; # Add UUID back in prior to writing to DB
-
-	return $clone;
-}
-
-# ============================================================
 sub read {
 # ============================================================
 	my $class = shift;
 	my $uuid  = shift;
 	return _get( $uuid );
+}
+
+# ============================================================
+sub search {
+# ============================================================
+	my $query = shift;
 }
 
 # ============================================================
@@ -163,14 +169,14 @@ sub uuid {
 sub write {
 # ============================================================
 	my $self   = shift;
-	my $data   = $self->json();
-	my $uuid   = $data->uuid();
+	my $doc    = $self->document();
+	my $uuid   = $self->uuid();
 	my $exists = _exists( $uuid );
 
 	if( $exists ) {
-		_update( $data );
+		_update( $doc );
 	} else {
-		_put( $data );
+		_put( $doc );
 	}
 }
 

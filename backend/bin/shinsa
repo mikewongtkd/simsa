@@ -13,8 +13,23 @@ our $json     = new JSON::XS();
 our $registry = new Shinsa::Client::Registry();
 our $manager  = new Shinsa::RequestManager();
 
-websocket '/shinsa/api/v1/:exam/:uuid/:roles' => sub {
+get '/shinsa/json/api/v1/:uuid' => sub {
 	my $self   = shift;
+	my $uuid   = $self->param( 'uuid' );
+	my $object = Shinsa::DBO->read( $uuid );
+
+	if( ! $object ) {
+		$self->render( json => { code => 404, status => 'error', error => 'Not Found', message => "No $table object with UUID $uuid"});
+		return;
+	}
+	
+	$self->render( json => { code => 200, status => 'ok', payload => $object->document()});
+}
+
+websocket '/shinsa/ws/api/v1/:exam/:uuid' => sub {
+	my $self   = shift;
+	my $exam   = $self->param( 'exam' );
+	my $uuid   = $self->param( 'uuid' );
 	my $client = $registry->add( $self );
 	my $request = { type => 'user', action => 'connect', user => { sessid => $client->sessid(), uuid => $client->uuid(), role => $client->role() }};
 	$manager->broadcast( $client, $request, $registry );
@@ -38,3 +53,5 @@ websocket '/shinsa/api/v1/:exam/:uuid/:roles' => sub {
 		$client->ping->quit();
 	});
 }
+
+app->start( listen => 3321 );
