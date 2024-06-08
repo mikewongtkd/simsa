@@ -1,7 +1,8 @@
 const Shinsa = {
 	class DBO {
 		static async get( uuid ) {
-			let data = null;
+			let data    = null;
+			let doctype = null;
 			await $.get( `/shinsa/json/api/v1/${uuid}` )
 			.then( response => {
 				console.log( `Shinsa::DBO ${response.class} ${uuid}`, response );
@@ -10,12 +11,13 @@ const Shinsa = {
 					return null;
 				}
 
-				data = response.payload;
+				data    = response.payload;
+				doctype = response.class;
 			});
 
 			const handler = {
 				get( target, prop, receiver ) {
-					if( prop of target ) {
+					if( Reflect.has( target, prop )) {
 						let value = Reflect.get( ...arguments );
 
 						if( Shinsa.DBO.is_uuid( value )) {
@@ -39,7 +41,20 @@ const Shinsa = {
 				}
 			};
 
-			return new Proxy( data, handler );
+			// Factory instantiate based on the class type
+			let obj = Shinsa.DBO.factory( doctype, data );
+
+			// Wrap object in a Proxy for dynamic dispatch
+			return new Proxy( obj, handler );
+		}
+
+		static factory( doctype, data ) {
+			switch( doctype) {
+				case 'Exam':       return new Shinsa.Exam( data );
+				case 'Examiner':   return new Shinsa.Examiner( data );
+				case 'Examinee':   return new Shinsa.Examinee( data );
+				case 'User':       return new Shinsa.User( data );
+			}
 		}
 
 		static is_list( value ) {
@@ -47,5 +62,8 @@ const Shinsa = {
 
 		static is_uuid( value ) {
 		}
-	}
+	};
 };
+
+const Shinsa.User = class User extends Shinsa.DBO {
+}
