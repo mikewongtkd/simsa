@@ -105,7 +105,8 @@ sub get {
 		}
 
 	# ===== RETURN EXTERNAL REFERENCE IF THEY EXISTS
-	# External references are provied by "Join" documents (e.g. many-to-many relationships)
+	# External references are provied by documents that have the current class
+	# as a field
 	} else {
 		my $mine       = ucfirst( $key );
 		my $ref        = lc _field( ref $self );

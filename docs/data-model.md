@@ -4,15 +4,22 @@
 
 ### Exam
 
-- has many Examinees
 - has many Groups
 - might have a Schedule
 - has many Officials
 - has many Examiners
+- has many Examinees
 
 ### Schedule
 
-- belongs to an Examination
+- belongs to an Exam
+- has many TimeBlocks
+
+### TimeBlock
+
+- has a planned-start, planned-stop, start, stop
+- has many groups
+- A group cannot have concurrent timeblocks (scheduling conflict)
 
 ### User
 
@@ -36,26 +43,23 @@
 - belongs to an Examiner
 - belongs to an Examinee
 
-### Role
+### Participant
 
-## Roles
+- belongs to an Exam
 
-### Examinee
+#### Examinee
 
-- belongs to an Examination
 - belongs to a Group
 - has many Scores
 - is a (has one) User
 
-### Examiner
+#### Examiner
 
-- belongs to an Examination
-- has many Panels
+- belongs to a Group
 - is a (has one) User
 - has many Scores
 
-### Official 
+#### Official 
 
-- belongs to an Examination
 - is a (has one) User
 
