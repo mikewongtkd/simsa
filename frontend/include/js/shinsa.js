@@ -16,14 +16,16 @@ const Shinsa = {
 			});
 
 			const handler = {
-				get( target, prop, receiver ) {
+				get( target, Props, receiver ) {
+					let prop   = Inflected.singularize( Props ).toLowerCase();
+					let plural = Props != prop;
 					if( Reflect.has( target, prop )) {
 						let value = Reflect.get( ...arguments );
 
 						if( Shinsa.DBO.is_uuid( value )) {
 							return Shinsa.DBO.get( value );
 
-						} else if( Shinsa.DBO.is_list( value )) {
+						} else if( Array.isArray( value )) {
 							return value.map( x => Shinsa.DBO.is_uuid( x ) ? Shinsa.DBO.get( x ) : x );
 
 						} else {
@@ -57,10 +59,11 @@ const Shinsa = {
 			}
 		}
 
-		static is_list( value ) {
-		}
-
 		static is_uuid( value ) {
+			const uuid_re = new RegExp( '^[0-9a-f]{8}-[0-9a-f]{4}-[0-5][0-9a-f]{3}-[089ab][0-9a-f]{3}-[0-9a-f]{12}$', 'i' ); // RFC4122
+			if( typeof value !== 'string' ) { return false; }
+			if( uuid_re.match( value )) { return true; }
+			return false;
 		}
 	};
 };
