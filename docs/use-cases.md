@@ -1,4 +1,4 @@
-# Shinsa Use Cases
+# Simsa Use Cases
 
 ## Main Use Case Narrative
 
