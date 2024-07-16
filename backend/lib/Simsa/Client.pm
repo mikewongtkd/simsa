@@ -1,11 +1,11 @@
-package Shinsa;
+package Simsa;
 use base Clone;
-use Shinsa::User;
-use Shinsa::Exam;
+use Simsa::User;
+use Simsa::Exam;
 use Data::Structure::Util qw( unbless );
 use JSON::XS;
 use Mojolicious::Controller;
-use Shinsa::Client::Ping;
+use Simsa::Client::Ping;
 
 # ============================================================
 sub new {
@@ -27,8 +27,8 @@ sub init {
 	my $roles      = $websocket->param( 'roles' );
 	my $sessid     = $websocket->cookie( 'shinsa-session' );
 
-	$self->{ exam }       = Shinsa::DBO::_get( $exam );
-	$self->{ uuid }       = Shinsa::DBO::_get( $uuid );
+	$self->{ exam }       = Simsa::DBO::_get( $exam );
+	$self->{ uuid }       = Simsa::DBO::_get( $uuid );
 	$self->{ roles }      = $roles;
 	$self->{ sessid }     = $sessid;
 	$self->{ device }     = $connection;

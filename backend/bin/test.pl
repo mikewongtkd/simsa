@@ -2,22 +2,22 @@
 
 use Data::Dumper;
 use lib qw( lib );
-use Shinsa;
+use Simsa;
 
-my $login = new Shinsa::Login( 
+my $login = new Simsa::Login( 
 	email => 'mikewongtkd@gmail.com',
 	password => 'password1234'
 );
-my $user = new Shinsa::User();
+my $user = new Simsa::User();
 $user->fname( 'Mike' );
 $user->lname( 'Wong' );
 $user->login( $login );
 
 print 'Login ', $login->verify( 'password1234' ) ? 'OK' : 'Failed', "\n";
 
-my $exam = new Shinsa::Exam( name => 'CUTA KKW Dan Examination', date => '2024-10-05', location => 'Sparta Taekwondo' );
+my $exam = new Simsa::Exam( name => 'CUTA KKW Dan Examination', date => '2024-10-05', location => 'Sparta Taekwondo' );
 
-my $examinee = new Shinsa::Examinee(
+my $examinee = new Simsa::Examinee(
 	id   => 1,
 	exam => $exam->uuid(),
 	user => $user->uuid()

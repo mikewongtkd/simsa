@@ -1,5 +1,5 @@
-package Shinsa::Login;
-use base qw( Shinsa::DBO );
+package Simsa::Login;
+use base qw( Simsa::DBO );
 use PHP::Functions::Password qw( password_hash password_verify );
 
 # ============================================================

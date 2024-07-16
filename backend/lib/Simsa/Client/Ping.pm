@@ -1,4 +1,4 @@
-package Shinsa::Client::Ping;
+package Simsa::Client::Ping;
 use base qw( Clone );
 use List::Util qw( sum );
 use Data::Structure::Util qw( unbless );

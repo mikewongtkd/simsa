@@ -1,4 +1,4 @@
-package Shinsa::DBO;
+package Simsa::DBO;
 use base qw( Clone );
 use Data::Dumper;
 use Data::Structure::Util qw( unbless );
@@ -204,7 +204,7 @@ sub AUTOLOAD {
 sub _class {
 # ============================================================
 	my $class = shift;
-	my @namespaces = grep { ! /^Shinsa$/ } split /::/, $class;
+	my @namespaces = grep { ! /^Simsa$/ } split /::/, $class;
 
 	$class = join( '::', @namespaces );
 	return $class;
@@ -213,7 +213,7 @@ sub _class {
 # ============================================================
 sub _db_connect {
 # ============================================================
-	$Shinsa::DBO::dbh = DBI->connect( 'dbi:SQLite:db.sqlite' ) if( ! defined $Shinsa::DBO::dbh );
+	$Simsa::DBO::dbh = DBI->connect( 'dbi:SQLite:db.sqlite' ) if( ! defined $Simsa::DBO::dbh );
 }
 
 # ============================================================
@@ -221,7 +221,7 @@ sub _exists {
 # ============================================================
 	_db_connect();
 	my $uuid  = shift;
-	my $sth   = $Shinsa::DBO::dbh->prepare( 'select count(*) from document where uuid=?' );
+	my $sth   = $Simsa::DBO::dbh->prepare( 'select count(*) from document where uuid=?' );
 	$sth->execute( $uuid );
 
 	my $count = $sth->fetchrow_arrayref();
@@ -235,7 +235,7 @@ sub _exists {
 sub _factory {
 # ============================================================
 	my $document = shift;
-	my $class    = sprintf( "Shinsa::%s", ucfirst $document->{ class });
+	my $class    = sprintf( "Simsa::%s", ucfirst $document->{ class });
 	my $data     = $json->decode( $document->{ data });
 	my $result   = bless { uuid => $document->{ uuid }, class => $document->{ class }, data => $data }, $class;
 
@@ -260,7 +260,7 @@ sub _find_references {
 
 	# ===== SEARCH FOR DIRECT REFERENCES
 	# Things that are mine that refer back to me
-	my $sth   = $Shinsa::DBO::dbh->prepare( "select * from document where class=? and json_extract( document.data, ? ) = ?" );
+	my $sth   = $Simsa::DBO::dbh->prepare( "select * from document where class=? and json_extract( document.data, ? ) = ?" );
 	$sth->execute( $mine, "\$.$ref", $me );
 
 	my $results = [];
@@ -271,7 +271,7 @@ sub _find_references {
 
 	# ===== SEARCH FOR REFERENCES IN JOIN DOCUMENTS
 	# Joins that refer to me and have things that are mine
-	my $sth   = $Shinsa::DBO::dbh->prepare( "select * from document where class='Join' and json_extract( document.data, ? ) = ? and json_extract( document.data, ? ) is not null" );
+	my $sth   = $Simsa::DBO::dbh->prepare( "select * from document where class='Join' and json_extract( document.data, ? ) = ? and json_extract( document.data, ? ) is not null" );
 	$sth->execute( "\$.$ref", $me, "\$.$mine" );
 
 	while( my $document = $sth->fetchrow_hashref()) {
@@ -293,7 +293,7 @@ sub _get {
 		return undef;
 	}
 
-	my $sth = $Shinsa::DBO::dbh->prepare( 'select * from document where uuid=?' );
+	my $sth = $Simsa::DBO::dbh->prepare( 'select * from document where uuid=?' );
 	$sth->execute( $uuid );
 
 	my $document = $sth->fetchrow_hashref();
@@ -309,7 +309,7 @@ sub _put {
 	my $class    = $document->{ class };
 	my $data     = $json->canonical->encode( $document->{ data });
 
-	my $sth      = $Shinsa::DBO::dbh->prepare( 'insert into document (uuid, class, data) values (?, ?, ?)' );
+	my $sth      = $Simsa::DBO::dbh->prepare( 'insert into document (uuid, class, data) values (?, ?, ?)' );
 	$sth->execute( $uuid, $class, $data );
 }
 
@@ -346,7 +346,7 @@ sub _update {
 	my $uuid     = $document->{ uuid };
 	my $data     = $json->canonical->encode( $document->{ data });
 
-	my $sth      = $Shinsa::DBO::dbh->prepare( 'update document set data=? where uuid=?' );
+	my $sth      = $Simsa::DBO::dbh->prepare( 'update document set data=? where uuid=?' );
 	$sth->execute( $data, $uuid );
 }
 

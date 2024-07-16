@@ -1,7 +1,7 @@
-package Shinsa::Client::Registry;
+package Simsa::Client::Registry;
 use lib qw( /usr/local/freescore/lib );
-use Shinsa::Client::Group;
-use Shinsa::Client;
+use Simsa::Client::Group;
+use Simsa::Client;
 
 # ============================================================
 sub new {
@@ -24,7 +24,7 @@ sub add {
 # ============================================================
 	my $self       = shift;
 	my $websocket  = shift;
-	my $client     = new Shinsa::Client( $websocket );
+	my $client     = new Simsa::Client( $websocket );
 	my $uuid       = $client->uuid();
 
 	$self->{ exam } = exists $self->{ exam } ? $self->{ exam } : $client->exam();

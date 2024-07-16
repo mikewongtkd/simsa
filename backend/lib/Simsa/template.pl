@@ -3,8 +3,8 @@
 my @modules = qw( Exam Schedule User Login Group Score Role );
 
 our $template = <<EOF;
-package Shinsa::<module>;
-use base qw( Shinsa::DBO );
+package Simsa::<module>;
+use base qw( Simsa::DBO );
 
 1;
 EOF

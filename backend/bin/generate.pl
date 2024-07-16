@@ -2,15 +2,15 @@
 
 use lib qw( lib );
 use List::Util qw( sum );
-use Shinsa;
-use Shinsa::DataModel::Faker;
+use Simsa;
+use Simsa::DataModel::Faker;
 use Text::CSV qw( csv );
 use UUID;
 use JSON::XS();
 
 my $json    = new JSON::XS();
-my $fake    = new Shinsa::DataModel::Faker;
-my $schema  = Shinsa::Schema->connect( 'dbi:SQLite:db.sqlite' );
+my $fake    = new Simsa::DataModel::Faker;
+my $schema  = Simsa::Schema->connect( 'dbi:SQLite:db.sqlite' );
 my $count   = {
 	panel     => { size => 5 },
 	panels    => 2,
@@ -30,8 +30,8 @@ for my $i ( 0 .. $count->{ users }) {
 	my $login = $fake->login();
 	my $user  = $fake->user( $login );
 
-	$login = new Shinsa::Login( %$login );
-	$user  = new Shinsa::User( %$user );
+	$login = new Simsa::Login( %$login );
+	$user  = new Simsa::User( %$user );
 
 	$login->write();
 	$user->write();
@@ -44,7 +44,7 @@ my $producer = $users->[ 0 ];
 
 # ===== EXAM
 my $exam = $fake->exam( $producer );
-$exam = new Shinsa::Exam( %$exam );
+$exam = new Simsa::Exam( %$exam );
 $exam->write();
 
 # ===== EXAMINERS AND PANELS

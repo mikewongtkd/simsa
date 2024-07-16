@@ -1,6 +1,6 @@
-package Shinsa::DataModel::Faker;
+package Simsa::DataModel::Faker;
 
-use lib qw( /usr/local/shinsa/lib );
+use lib qw( /usr/local/simsa/lib );
 use Data::Faker;
 use Data::Faker::USNames;
 use Date::Manip;

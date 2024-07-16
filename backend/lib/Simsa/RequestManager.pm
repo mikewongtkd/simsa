@@ -1,5 +1,5 @@
-package Shinsa::RequestManager;
-use Shinsa;
+package Simsa::RequestManager;
+use Simsa;
 use Data::Dumper;
 
 # ============================================================
@@ -16,7 +16,7 @@ sub get {
 # ============================================================
 	my $self = shift;
 	my $uuid = shift;
-	my $item = Shinsa::DBO::_get( $uuid );
+	my $item = Simsa::DBO::_get( $uuid );
 	return $item;
 }
 

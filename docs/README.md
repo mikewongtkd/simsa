@@ -1,6 +1,6 @@
-# ShinSa
+# Sungpoomdan Simsa 승품단 심사
 
-ShinSa is software that implements the Kukkiwon Taekwondo dan/poom promotion
+Simsa is software that implements the Kukkiwon Taekwondo dan/poom promotion
 examination specification as an easy-to-use portable web application. 
 
 ## Examination Criteria

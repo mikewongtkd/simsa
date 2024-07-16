@@ -1,5 +1,5 @@
-package Shinsa::Group;
-use base qw( Shinsa::DBO );
+package Simsa::Group;
+use base qw( Simsa::DBO );
 use List::MoreUtils qw( first_index );
 
 # ============================================================

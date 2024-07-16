@@ -1,5 +1,5 @@
-package Shinsa::Role;
-use base qw( Shinsa::DBO );
+package Simsa::Role;
+use base qw( Simsa::DBO );
 
 # ============================================================
 sub get {

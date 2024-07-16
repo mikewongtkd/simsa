@@ -1,5 +1,5 @@
-package Shinsa::Panel;
-use base qw( Shinsa::Group );
+package Simsa::Panel;
+use base qw( Simsa::Group );
 
 # ============================================================
 sub examine {
