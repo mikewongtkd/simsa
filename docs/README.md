@@ -1,7 +1,8 @@
-# Sungpoomdan Simsa 승품단 심사
+# Simsa 심사
 
-Simsa is software that implements the Kukkiwon Taekwondo dan/poom promotion
-examination specification as an easy-to-use portable web application. 
+Simsa (from *sungpoomdan simsa* -- 승품단 심사-- promotion examination) is
+software that implements the Kukkiwon Taekwondo dan/poom promotion examination
+specification as an easy-to-use portable web application. 
 
 ## Examination Criteria
 
