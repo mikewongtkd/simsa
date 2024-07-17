@@ -6,7 +6,7 @@ use Data::Dumper;
 sub new {
 # ============================================================
 	my ($class) = map { ref || $_ } shift;
-	my $table   = _class( $class );
+	my $table   = Simsa::DBO::_class( $class );
 	my $self    = bless {}, $class;
 	return $self;
 }

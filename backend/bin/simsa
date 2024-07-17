@@ -1,6 +1,6 @@
 #! /usr/bin/perl
 
-use lib qw( /usr/local/shinsa/lib );
+use lib qw( /usr/local/simsa/lib );
 use Mojolicious::Lite;
 use Try::Tiny;
 use Simsa;
@@ -19,12 +19,12 @@ get '/shinsa/json/api/v1/:uuid' => sub {
 	my $object = Simsa::DBO->read( $uuid );
 
 	if( ! $object ) {
-		$self->render( json => { code => 404, status => 'error', error => 'Not Found', message => "No $table object with UUID $uuid"});
+		$self->render( json => { code => 404, status => 'error', error => 'Not Found', message => "No $object object with UUID $uuid" });
 		return;
 	}
 	
 	$self->render( json => { code => 200, status => 'ok', payload => $object->document()});
-}
+};
 
 websocket '/shinsa/ws/api/v1/:exam/:uuid' => sub {
 	my $self   = shift;
@@ -40,8 +40,11 @@ websocket '/shinsa/ws/api/v1/:exam/:uuid' => sub {
 	# ----------------------------------------
 	$self->on( message => sub {
 	# ----------------------------------------
-		try { $manager->handle( $client, $request, $registry )); }
-		catch { $client->send({ json => { error => "Error while processing request: $_\n", request => $request }}); }
+		try { 
+			$manager->handle( $client, $request, $registry ); 
+		} catch { 
+			$client->send({ json => { error => "Error while processing request: $_\n", request => $request }}); 
+		}
 	});
 
 	# ----------------------------------------
@@ -52,6 +55,6 @@ websocket '/shinsa/ws/api/v1/:exam/:uuid' => sub {
 		$manager->broadcast( $client, $request, $registry );
 		$client->ping->quit();
 	});
-}
+};
 
 app->start( listen => 3321 );

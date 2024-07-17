@@ -1,6 +1,5 @@
 package Simsa::Client::Registry;
 use lib qw( /usr/local/freescore/lib );
-use Simsa::Client::Group;
 use Simsa::Client;
 
 # ============================================================
@@ -63,7 +62,6 @@ sub remove {
 	my $self       = shift;
 	my $client     = shift;
 	my $id         = undef;
-	my $group      = undef;
 
 	if( ref $client ) { $id = $client->id(); } 
 	else {

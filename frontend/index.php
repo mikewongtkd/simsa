@@ -21,7 +21,7 @@
     <link href="include/bootstrap-5.3.3-dist/css/bootstrap.min.css" rel="stylesheet">
 
     <!-- Custom styles for this template -->
-    <link href="include/css/shinsa/cover.css" rel="stylesheet">
+    <link href="include/css/simsa/cover.css" rel="stylesheet">
   </head>
 
   <body class="text-center">
