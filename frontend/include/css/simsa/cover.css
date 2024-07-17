@@ -103,10 +103,33 @@ body {
   padding: .75rem 1.25rem;
   font-weight: 700;
 }
+
+
 .inner.cover {
+  color: #ccc;
   border-radius: 1em;
   background: rgba( 0, 0, 0, 0.75 );
-  margin-bottom: 25%;
+  margin-bottom: 50%;
+}
+
+.inner.cover h1,h2,h3 {
+  padding-top: 0.5em;
+}
+
+.inner.cover h1,h2,h3,b {
+  color: white;
+}
+
+.inner.cover form {
+  background: rgba( 128, 128, 128, 0.5 );
+  border-radius: 1em;
+  text-align: left;
+  padding: 1em;
+  margin-bottom: 1em;
+}
+
+.inner.cover form button[type="submit"] {
+  margin-top: 1em;
 }
 
 

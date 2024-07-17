@@ -36,18 +36,26 @@
           <h3 class="masthead-brand">Simsa 심사</h3>
           <nav class="nav nav-masthead justify-content-center">
             <a class="nav-link active" href="#">Home</a>
-            <a class="nav-link" href="#">Features</a>
-            <a class="nav-link" href="#">Contact</a>
+            <a class="nav-link" href="#">About</a>
           </nav>
         </div>
       </header>
 
       <main role="main" class="inner cover">
         <h1 class="cover-heading">Simsa 심사</h1>
-        <p class="lead"><b>Simsa</b> is a Taekwondo belt promotion examination (승품단심사) management system following <a class="kkw-ref" href="#" data-toggle="tooltip" title="<i>Poom-Dan Promotion Test Examiner Course Textbook</i><br>Kukkiwon World Taekwondo Academy (June 2022)<br>ISBN 978-89-93484-43-4">Kukkiwon procedures</a>.</p>
-        <p class="lead">
-          <a href="#" class="btn btn-lg btn-secondary">Learn more</a>
-        </p>
+        <p class="lead"><b>Simsa</b> is a Taekwondo belt promotion examination (승품단 심사) management system that follows the <a class="kkw-ref" href="#" data-toggle="tooltip" title="<i>Poom-Dan Promotion Test Examiner Course Textbook</i><br>Kukkiwon World Taekwondo Academy (June 2022)<br>ISBN 978-89-93484-43-4">Kukkiwon procedures</a> for Poom/Dan examination.</p>
+        <form>
+          <h3>Login</h3>
+          <div class="form-group">
+            <label for="email">Username</label>
+            <input type="email" class="form-control" id="email" aria-describedby="emailHelp" placeholder="Enter email">
+          </div>
+          <div class="form-group">
+            <label for="password">Password</label>
+            <input type="password" class="form-control" id="password" placeholder="Password">
+          </div>
+          <button type="submit" class="btn btn-primary">Login</button>
+        </form>
       </main>
 
       <footer class="mastfoot mt-auto">
@@ -61,6 +69,7 @@
   <script>
     $(() => {
       $('[data-toggle="tooltip"]').tooltip({ html : true })
+      $( '#email' ).focus();
     })
   </script>
 </html>
