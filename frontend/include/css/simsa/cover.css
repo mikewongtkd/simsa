@@ -27,10 +27,8 @@ a:hover {
 html,
 body {
   height: 100%;
-  background-color: #333;
-  background-image: url( '/assets/images/2022-11-fresno-kukkiwon-seminar.jpg' );
-  background-size: 100%;
-  background-position-y: top;
+  background: rgb(36,19,0);
+  background: linear-gradient(0deg, rgba(36,19,0,1) 0%, rgba(47,27,9,1) 35%, rgba(130,110,96,1) 100%);
 }
 
 body {
@@ -46,9 +44,8 @@ body {
 }
 
 .cover-container {
-  max-width: 42em;
+	max-width: 100%;
 }
-
 
 /*
  * Header
@@ -128,8 +125,12 @@ body {
   margin-bottom: 1em;
 }
 
-.inner.cover form button[type="submit"] {
+.inner.cover form .login-actions {
   margin-top: 1em;
+}
+
+.inner.cover form .login-actions button[type="submit"] {
+	float: right;
 }
 
 

@@ -1,7 +1,5 @@
 <?php
-
-  // include_once( 'session.php' );
-
+  include_once( 'session.php' );
 ?>
 
 <!doctype html>
@@ -22,6 +20,18 @@
 
     <!-- Custom styles for this template -->
     <link href="include/css/simsa/cover.css" rel="stylesheet">
+    <style>
+body {
+  background-image: url( '/assets/images/2022-11-fresno-kukkiwon-seminar.jpg' );
+  background-size: 100%;
+  background-position-y: top;
+}
+
+.cover-container {
+  max-width: 42em;
+}
+
+    </style>
 
     <script src="include/jquery-3.7.1/jquery.min.js"></script>
     <script src="include/popperjs-2.11.8-dist/popper.min.js"></script>
@@ -31,15 +41,7 @@
   <body class="text-center">
 
     <div class="cover-container d-flex h-100 p-3 mx-auto flex-column">
-      <header class="masthead mb-auto">
-        <div class="inner">
-          <h3 class="masthead-brand">Simsa 심사</h3>
-          <nav class="nav nav-masthead justify-content-center">
-            <a class="nav-link active" href="#">Home</a>
-            <a class="nav-link" href="#">About</a>
-          </nav>
-        </div>
-      </header>
+      <?php include_once( 'components/header.php' ); ?>
 
       <main role="main" class="inner cover">
         <h1 class="cover-heading">Simsa 심사</h1>
@@ -54,7 +56,10 @@
             <label for="password">Password</label>
             <input type="password" class="form-control" id="password" placeholder="Password">
           </div>
-          <button type="submit" class="btn btn-primary">Login</button>
+          <div class="login-actions">
+            <button type="submit" class="btn btn-primary">Login</button>
+            <button class="btn btn-warning">Forgot Password</button>
+          </div>
         </form>
       </main>
 

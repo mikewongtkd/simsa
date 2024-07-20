@@ -1,0 +1,80 @@
+{
+	"name" : "Kukkiwon2022",
+	"source" : "Poom/Dan Promotion Test Examiner Course Textbook",
+	"published" : "June 2022",
+	"areas" : [
+		{
+			"name" : "Basic Movements",
+			"categories" : [
+				{
+					"name" : "Accuracy",
+					"weight" : 5
+				},
+				{
+					"name" : "Proficiency",
+					"weight" : 4
+				},
+				{
+					"name" : "Balance",
+					"weight" : 1
+				}
+			]
+		},
+		{
+			"name" : "Poomsae (품새 Forms)",
+			"performances" : 2,
+			"categories" : [
+				{
+					"name" : "Accuracy",
+					"weight" : 5
+				},
+				{
+					"name" : "Proficiency",
+					"weight" : 4
+				},
+				{
+					"name" : "Dignity",
+					"weight" : 1
+				}
+			]
+		},
+		{
+			"name" : "Kyorugi (겨루기 Sparring)",
+			"categories" : [
+				{
+					"name" : "Offensive",
+					"weight" : 3
+				},
+				{
+					"name" : "Variety of Techniques",
+					"weight" : 4
+				},
+				{
+					"name" : "Defensive",
+					"weight" : 3
+				}
+			]
+		},
+		{
+			"name" : "Gyeok-pa (격파 Breaking)",
+			"performances" : [ "Hand technique", "Foot technique" ],
+			"categories" : [
+				{
+					"name" : "Break",
+					"choices" : [
+						{ "name" : "Complete", "value" : 50 },
+						{ "name" : "Failure", "value" : 0 }
+					]
+				},
+				{
+					"name" : "Accuracy",
+					"weight" : 3
+				},
+				{
+					"name" : "Proficiency",
+					"weight" : 2
+				}
+			]
+		}
+	]
+}
