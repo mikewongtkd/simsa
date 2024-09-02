@@ -23,7 +23,7 @@ my $examinee = new Simsa::Examinee(
 	user => $user->uuid()
 );
 
-printf "%s %s\n", $examinee->fname(), $examinee->lname();
+printf "Examinee: %s %s\n", $examinee->fname(), $examinee->lname();
 
 print Dumper $examinee->exam();
 

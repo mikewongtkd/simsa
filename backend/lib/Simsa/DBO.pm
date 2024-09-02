@@ -157,6 +157,7 @@ sub set {
 	} elsif( $value->can( 'uuid' )) {
 		$self->{ data }{ $key } = $value->uuid();
 	}
+	$self->write();
 }
 
 # ============================================================
@@ -196,6 +197,13 @@ sub AUTOLOAD {
 		warn "Extra parameters to $AUTOLOAD were ignored $!";
 
 	} else {
+		if( exists( $self->{ data }{ user })) {
+			my $user  = _get( $self->{ data }{ user });
+			my $field = _field( $AUTOLOAD );
+			if( exists( $user->{ data }{ $field })) {
+				return $user->get( $AUTOLOAD );
+			}
+		}
 		return $self->get( $AUTOLOAD );
 	}
 }
@@ -356,6 +364,12 @@ sub _is_uuid {
 	my $value = shift;
 	return 0 if ref $value;
 	return $value =~ /^[0-9A-Fa-f]{8}\-[0-9A-Fa-f]{4}\-[0-9A-Fa-f]{4}\-[0-9A-Fa-f]{4}\-[0-9A-Fa-f]{12}$/;
+}
+
+# ============================================================
+sub DESTROY {
+# ============================================================
+	my $self = shift;
 }
 
 1;
