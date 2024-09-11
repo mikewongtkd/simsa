@@ -2,11 +2,16 @@
 
 ## Core Classes
 
+### Root
+- has many Users
+
 ### Exam
 
 - has many Groups
+- has many Panels
 - might have a Schedule
 - has many Officials
+- has many Technicians
 - has many Examiners
 - has many Examinees
 
@@ -19,7 +24,7 @@
 
 - has a planned-start, planned-stop, start, stop
 - has many groups
-- A group cannot have concurrent timeblocks (scheduling conflict)
+- A group cannot have concurrent timeBlocks (scheduling conflict)
 
 ### User
 
@@ -31,12 +36,17 @@
 
 ### Group
 
-- label
-
-- belongs to an Examination
+- belongs to an Exam
 - belongs to a Group
 - has many Groups
-- has many Examinees or Examiners
+- has many Examinees
+
+### Panel
+Analogous to a Taekwondo tournament ring
+
+- belongs to an Exam
+- has many Examiners
+- has many ComputerOperators
 
 ### Score
 
@@ -58,8 +68,3 @@
 - belongs to a Group
 - is a (has one) User
 - has many Scores
-
-#### Official 
-
-- is a (has one) User
-

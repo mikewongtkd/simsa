@@ -1,6 +1,7 @@
 package Simsa::Client::Registry;
 use lib qw( /usr/local/freescore/lib );
 use Simsa::Client;
+use Simsa::DBO;
 
 # ============================================================
 sub new {
@@ -24,54 +25,64 @@ sub add {
 	my $self       = shift;
 	my $websocket  = shift;
 	my $client     = new Simsa::Client( $websocket );
-	my $uuid       = $client->uuid();
+	my $user       = $client->user->uuid();
+	my $exam       = $client->exam->uuid();
 
-	$self->{ exam } = exists $self->{ exam } ? $self->{ exam } : $client->exam();
+	if( exists $self->{ client }{ $exam }{ $user }) {
+		push @{$self->{ client }{ $exam }{ $user }}, $client;
+	} else {
+		$self->{ client }{ $exam }{ $user } = [ $client ];
+	}
 
-	$self->{ client }{ $uuid } = $client;
-
-	return $client;
-}
-
-# ============================================================
-sub client {
-# ============================================================
-	my $self      = shift;
-	my $id        = shift;
-	my $client    = exists $self->{ client }{ $id } ? $self->{ client }{ $id } : undef;
 	return $client;
 }
 
 # ============================================================
 sub clients {
 # ============================================================
-	my $self    = shift;
-	my $filter  = shift;
-	my @clients = sort { $a->description() cmp $b->description() } values %{ $self->{ client }};
+	my $self       = shift;
+	my $client     = shift;
+	my $audience   = shift;
+	my $exam       = $client->exam->uuid();
+	my @clients    = ();
 
-	if( $filter ) {
-		@clients = grep { $_->role() =~ /^$filter/ } @clients;
+	foreach my $uuid (@$audience) {
+		my $document = Simsa::DBO::_get( $uuid );
+		my $class    = $document->class();
+
+		my @users = ();
+		if( $class =~ /role/i ) {
+			my $role = $document;
+			push @users, $role->user->uuid();
+
+		} elsif( $class =~ /panel/i ) {
+			my $panel = $document;
+			push @users, map { $_->user->uuid() } $panel->computer_operators()
+			push @users, map { $_->user->uuid() } $panel->examiners()
+			push @users, map { $_->user->uuid() } $panel->group->examinees()
+		}
+
+		foreach my $user (@users) {
+			next unless exists $self->{ client }{ $exam }{ $user };
+			push @clients, @{$self->{ client }{ $exam }{ $user }};
+		}
 	}
-
-	return @clients;
 }
 
 # ============================================================
 sub remove {
 # ============================================================
-	my $self       = shift;
-	my $client     = shift;
-	my $id         = undef;
+	my $self   = shift;
+	my $client = shift;
+	my $user   = $client->user->uuid();
+	my $exam   = $client->exam->uuid();
 
-	if( ref $client ) { $id = $client->id(); } 
-	else {
-		$id     = $client;
-		$client = $self->{ client }{ $id };
-	}
-	my $user = $client->description();
-	print STDERR "$user connection closed.\n";
+	# Filter out all clients with the same session ID as the requested client
+	$self->{ $exam }{ $user } = [ grep { $_->{ sessid } eq $client->{ sessid } } @{$self->{ $exam }{ $user }} ];
 
-	delete $self->{ client }{ $id } if exists $self->{ client }{ $id };
+	# Prune unused branches
+	delete $self->{ $exam }{ $user } unless @{$self->{ $exam }{ $user }};
+	delete $self->{ $exam } unless keys %{$self->{ $exam }};
 }
 
 1;

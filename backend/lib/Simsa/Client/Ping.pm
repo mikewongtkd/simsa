@@ -28,7 +28,7 @@ sub init {
 	$self->{ client }      = $client;
 	$client->{ timedelta } = 0;
 	$self->{ timestats }   = new Statistics::Descriptive::Full();
-	$self->{ speed } = { normal => 30, fast => 15, faster => 5, fastest => 1 };
+	$self->{ speed } = { normal => 60, fast => 30, faster => 5, fastest => 1 };
 }
 
 # ============================================================
@@ -94,18 +94,40 @@ sub normal {
 }
 
 # ============================================================
-sub pong {
+sub quit {
+# ============================================================
+	my $self   = shift;
+	my $client = $self->{ client };
+	my $id     = $self->{ id };
+
+	return unless $id;
+
+	Mojo::IOLoop->remove( $id );
+	delete $self->{ id };
+	delete $client->{ ping };
+}
+
+# ============================================================
+sub request {
+# ============================================================
+	my $self    = shift;
+	my $request = shift;
+	return $request->{ subject } eq 'client' && $request->{ action } eq 'pong';
+}
+
+# ============================================================
+sub resolve {
 # ============================================================
 	my $self      = shift;
-	my $server_ts = shift;
-	my $client_ts = shift;
+	my $request   = shift;
 	my $client    = $self->{ client };
+	my $server_ts = $request->{ server }{ timestamp };
 
 	delete $self->{ pings }{ $server_ts } if( exists $self->{ pings }{ $server_ts });
 
 	try {
 		my $date1     = new Date::Manip::Date( $server_ts );
-		my $date2     = new Date::Manip::Date( $client_ts );
+		my $date2     = new Date::Manip::Date( 'now GMT' );
 		my $delta     = $date1->calc( $date2 );
 
 		$self->{ timestats }->add_data( _total_seconds( $delta ));
@@ -127,20 +149,6 @@ sub pong {
 }
 
 # ============================================================
-sub quit {
-# ============================================================
-	my $self   = shift;
-	my $client = $self->{ client };
-	my $id     = $self->{ id };
-
-	return unless $id;
-
-	Mojo::IOLoop->remove( $id );
-	delete $self->{ id };
-	delete $client->{ ping };
-}
-
-# ============================================================
 sub start {
 # ============================================================
 	my $self     = shift;
@@ -153,7 +161,7 @@ sub start {
 	$self->{ id } = Mojo::IOLoop->recurring( $interval => sub ( $ioloop ) {
 		my $now = (new Date::Manip::Date( 'now GMT' ))->printf( '%O' ) . 'Z';
 		$self->{ pings }{ $now } = 1;
-		my $ping = { type => 'server', action => 'ping', server => { timestamp => $now }};
+		my $ping = { subject => 'server', action => 'ping', server => { timestamp => $now }};
 		$ws->send({ json => $ping });
 	});
 }

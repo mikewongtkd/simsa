@@ -66,6 +66,48 @@ class Session
     if ($this->db->execute()) { return true; }
     return false;
   }
+
+  public function login( $username, $password ) {
+    $login  = $this->db->querySingle( "select uuid, json_extract( data, '$.email' ) as email and json_extract( data, '$.pwhash' ) as pwhash from document where class = 'Login' and email = '$email'" );
+    $pwhash = $login[ 'pwhash' ];
+    $users  = $this->query( "select uuid, json_extract( data, '$.login' ) as login from document where class = 'User' and login = '{$login[ 'uuid' ]}'" );
+    $users  = join( ', ', array_map( function ($user) { return "'{$user[ 'uuid' ]}'"; }, $users ));
+    $roles  = $this->query( "select class, json_extract( data, '$.user' ) as user, json_extract( data, '$.exam' ) as exam from document where user in ({$users}) and exam is not null" );
+
+    $exams  = [];
+    foreach $roles as $role {
+      $exam = $role[ 'exam' ];
+      if( array_key_exists( $exam, $exams )) {
+        if( array_search( $role[ 'class' ], $exams[ $exam ])) { continue; }
+        array_push( $exams[ $exam ], $role[ 'class' ]);
+      } else {
+        $exams[ $exam ] = [ $role[ 'class' ]];
+      }
+    }
+
+    if( password_verify( $password, $pwhash )) {
+      $_SESSION[ 'exams' ] = $exams;
+      return $_SESSION[ 'auth' ]  = true;
+
+    } else {
+      return $this->logout();
+    }
+  }
+
+  public function logout() {
+    $_SESSION[ 'exams' ] = [];
+    $_SESSION[ 'auth' ]  = false;
+    return false;
+  }
+
+  private function query( $query ) {
+    $results = $this->db->query( $query );
+    $rows    = [];
+    while( $row = $results->fetchArray()) {
+      array_push( $rows, $row );
+    }
+    return $rows;
+  }
 }
 
 $session = new Session();

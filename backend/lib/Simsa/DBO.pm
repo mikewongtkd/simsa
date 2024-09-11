@@ -10,7 +10,16 @@ use UUID;
 use vars '$AUTOLOAD';
 
 our $dbh  = undef;
+our $sth  = {};
 our $json = new JSON::XS();
+our $statement = {
+	exists     => 'select count(*) from document where uuid=?',
+	get        => 'select * from document where uuid=?',
+	insert     => 'insert into document (uuid, class, data) values (?, ?, ?)',
+	joins      => "select * from document where class='Join' and json_extract( document.data, ? ) = ? and json_extract( document.data, ? ) is not null",
+	references => "select * from document where class like ? and json_extract( document.data, ? ) = ?",
+	update     => 'update document set data=? where uuid=?'
+};
 
 # ============================================================
 sub new {
@@ -20,8 +29,10 @@ sub new {
 	my $self    = bless {}, $class;
 	my $n       = int( @_ );
 
+	my $guuid   = _generate_uuid();
+
 	if( $n == 0 ) {
-		$self->{ uuid }  = lc( UUID::uuid());
+		$self->{ uuid }  = $guuid;
 		$self->{ class } = $table;
 		$self->{ data }  = {};
 
@@ -35,8 +46,8 @@ sub new {
 		$self->{ class } = $table;
 		$self->{ data }  = {};
 
-	} elsif( $n > 2 ) { 
-		$self->{ uuid }  = lc( UUID::uuid());
+	} elsif( $n > 1 ) { 
+		$self->{ uuid }  = $guuid;
 		$self->{ class } = $table;
 		$self->{ data }  = { @_ };
 		$self->{ uuid }  = $self->{ data }{ uuid } if( exists $self->{ data }{ uuid });
@@ -44,6 +55,13 @@ sub new {
 
 	$self->write();
 	return $self;
+}
+
+# ============================================================
+sub class {
+# ============================================================
+	my $self = shift;
+	return $self->{ class };
 }
 
 # ============================================================
@@ -88,13 +106,13 @@ sub get {
 		if( $plural ) {
 			if( ref $results eq 'ARRAY' ) {
 				if( any { _is_uuid( $_ ) } @$results ) {
-					return [ map { _is_uuid( $_ ) ? _get( $_ ) : $_ } @$results ];
+					return map { _is_uuid( $_ ) ? _get( $_ ) : $_ } @$results;
 				}
 				return $results;
 
 			} else {
 				$results = _get( $results ) if( _is_uuid( $results ));
-				return [ $results ];
+				return ( $results );
 			}
 
 		# ===== IF REQUESTED AS SINGULAR, RETURN AN A SINGLE VALUE OR DOCUMENT
@@ -105,7 +123,7 @@ sub get {
 		}
 
 	# ===== RETURN EXTERNAL REFERENCE IF THEY EXISTS
-	# External references are provied by documents that have the current class
+	# External references are provided by documents that have the current class
 	# as a field
 	} else {
 		my $mine       = ucfirst( $key );
@@ -113,13 +131,11 @@ sub get {
 		my $me         = $self->uuid();
 		my $references = _find_references( $mine, $ref, $me );
 
-		if( int( @$references ) == 0 ) {
-			return;
-
-		} elsif( $plural ) {
-			return $references;
+		if( $plural ) {
+			return @$references;
 
 		} else {
+			return if( int( @$references ) == 0 );
 			return shift @$references;
 		}
 	}
@@ -197,15 +213,10 @@ sub AUTOLOAD {
 		warn "Extra parameters to $AUTOLOAD were ignored $!";
 
 	} else {
-		if( exists( $self->{ data }{ user })) {
-			my $user  = _get( $self->{ data }{ user });
-			my $field = _field( $AUTOLOAD );
-			if( exists( $user->{ data }{ $field })) {
-				return $user->get( $AUTOLOAD );
-			}
-		}
 		return $self->get( $AUTOLOAD );
 	}
+
+	return;
 }
 
 # ============================================================
@@ -229,12 +240,11 @@ sub _exists {
 # ============================================================
 	_db_connect();
 	my $uuid  = shift;
-	my $sth   = $Simsa::DBO::dbh->prepare( 'select count(*) from document where uuid=?' );
+	my $sth   = _prepared_statement( 'exists' );
 	$sth->execute( $uuid );
 
 	my $count = $sth->fetchrow_arrayref();
 	$count = int( $count->[ 0 ]);
-
 
 	return $count;
 }
@@ -243,7 +253,7 @@ sub _exists {
 sub _factory {
 # ============================================================
 	my $document = shift;
-	my $class    = sprintf( "Simsa::%s", ucfirst $document->{ class });
+	my $class    = sprintf( "Simsa::%s", $document->{ class });
 	my $data     = $json->decode( $document->{ data });
 	my $result   = bless { uuid => $document->{ uuid }, class => $document->{ class }, data => $data }, $class;
 
@@ -263,13 +273,14 @@ sub _find_references {
 # ============================================================
 	_db_connect();
 	my $mine  = shift;
-	my $ref   = shift;
+	my $refer = shift;
 	my $me    = shift;
 
 	# ===== SEARCH FOR DIRECT REFERENCES
 	# Things that are mine that refer back to me
-	my $sth   = $Simsa::DBO::dbh->prepare( "select * from document where class=? and json_extract( document.data, ? ) = ?" );
-	$sth->execute( $mine, "\$.$ref", $me );
+	# (i.e. has-one relationships)
+	my $sth = _prepared_statement( 'references' );
+	$sth->execute( "%$mine", "\$.$refer", $me );
 
 	my $results = [];
 
@@ -279,14 +290,27 @@ sub _find_references {
 
 	# ===== SEARCH FOR REFERENCES IN JOIN DOCUMENTS
 	# Joins that refer to me and have things that are mine
-	my $sth   = $Simsa::DBO::dbh->prepare( "select * from document where class='Join' and json_extract( document.data, ? ) = ? and json_extract( document.data, ? ) is not null" );
-	$sth->execute( "\$.$ref", $me, "\$.$mine" );
+	# (i.e. more complicated relationships, including: many-to-many)
+	my $sth = _prepared_statement( 'joins' );
+	$sth->execute( "\$.$refer", $me, "\$.$mine" );
 
 	while( my $document = $sth->fetchrow_hashref()) {
 		push @$results, _factory( $document );
 	}
 
 	return $results;
+}
+
+# ============================================================
+sub _generate_uuid {
+# ============================================================
+	my $attempts = 0;
+	my $uuid     = lc UUID::uuid();
+	while( _exists( $uuid ) && $attempts < 100 ) { $uuid = lc UUID::uuid(); $attempts++; }
+
+	die "Unable to create a unique UUID $!" if( $attempts >= 100 );
+
+	return $uuid;
 }
 
 # ============================================================
@@ -301,11 +325,38 @@ sub _get {
 		return undef;
 	}
 
-	my $sth = $Simsa::DBO::dbh->prepare( 'select * from document where uuid=?' );
+	my $sth = _prepared_statement( 'get' );
 	$sth->execute( $uuid );
 
 	my $document = $sth->fetchrow_hashref();
 	return _factory( $document );
+}
+
+# ============================================================
+sub _prepare_statement {
+# ============================================================
+	my $name = shift;
+	my $sql  = shift;
+	die "System-defined prepared statement named '$name' already exists $!" if exists $Simsa::DBO::statement->{ $name };
+
+	# Return Singleton if exists and defined
+	return $Simsa::DBO::sth->{ $name } if exists $Simsa::DBO::sth->{ $name } && $Simsa::DBO::sth->{ $name };
+
+	# Else prepare the statement handle and return
+	return $Simsa::DBO::sth->{ $name } = $Simsa::DBO::dbh->prepare( $sql );
+}
+
+# ============================================================
+sub _prepared_statement {
+# ============================================================
+	my $name = shift;
+	die "No prepared statement named '$name' $!" unless exists $Simsa::DBO::statement->{ $name };
+
+	# Return Singleton if exists and defined
+	return $Simsa::DBO::sth->{ $name } if exists $Simsa::DBO::sth->{ $name } && $Simsa::DBO::sth->{ $name };
+
+	# Else prepare the statement handle and return
+	return $Simsa::DBO::sth->{ $name } = $Simsa::DBO::dbh->prepare( $Simsa::DBO::statement->{ $name });
 }
 
 # ============================================================
@@ -317,7 +368,7 @@ sub _put {
 	my $class    = $document->{ class };
 	my $data     = $json->canonical->encode( $document->{ data });
 
-	my $sth      = $Simsa::DBO::dbh->prepare( 'insert into document (uuid, class, data) values (?, ?, ?)' );
+	my $sth = _prepared_statement( 'insert' );
 	$sth->execute( $uuid, $class, $data );
 }
 
@@ -354,7 +405,7 @@ sub _update {
 	my $uuid     = $document->{ uuid };
 	my $data     = $json->canonical->encode( $document->{ data });
 
-	my $sth      = $Simsa::DBO::dbh->prepare( 'update document set data=? where uuid=?' );
+	my $sth = _prepared_statement( 'update' );
 	$sth->execute( $data, $uuid );
 }
 

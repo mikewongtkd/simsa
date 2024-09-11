@@ -9,9 +9,11 @@ use Simsa::Role;
 use Simsa::Schedule;
 use Simsa::Score;
 use Simsa::User;
-use Simsa::Examinee;
-use Simsa::Examiner;
-use Simsa::Official;
+use Simsa::Role::ComputerOperator;
+use Simsa::Role::Examinee;
+use Simsa::Role::Examiner;
+use Simsa::Role::Official;
+use Simsa::Role::Technician;
 
 
 1;

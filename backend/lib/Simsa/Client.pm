@@ -23,13 +23,11 @@ sub init {
 	my $websocket  = shift;
 	my $connection = $websocket->tx();
 	my $exam       = $websocket->param( 'exam' );
-	my $uuid       = $websocket->param( 'uuid' );
-	my $roles      = $websocket->param( 'roles' );
+	my $user       = $websocket->param( 'user' );
 	my $sessid     = $websocket->cookie( 'shinsa-session' );
 
 	$self->{ exam }       = Simsa::DBO::_get( $exam );
-	$self->{ uuid }       = Simsa::DBO::_get( $uuid );
-	$self->{ roles }      = $roles;
+	$self->{ user }       = Simsa::DBO::_get( $user );
 	$self->{ sessid }     = $sessid;
 	$self->{ device }     = $connection;
 	$self->{ websocket }  = $websocket;
@@ -39,11 +37,12 @@ sub init {
 # ============================================================
 sub description {
 # ============================================================
-	my $self = shift;
-	my $uuid = $self->uuid();
-	my $role = $self->role();
+	my $self  = shift;
+	my $user  = $self->{ user };
+	my $uuid  = $self->uuid();
+	my @roles = $self->roles();
 
-	return sprintf( "%s (%s)", $roles, $uuid );
+	return sprintf( "%s (%s)", join( ', ', @roles), $uuid );
 }
 
 # ============================================================
@@ -71,6 +70,26 @@ sub ping {
 }
 
 # ============================================================
+sub pong {
+# ============================================================
+# Synonym to ping() (i.e. return the Ping object, which also
+# handles pong())
+# ------------------------------------------------------------
+	my $self = shift;
+	return $self->ping();
+}
+
+# ============================================================
+sub roles {
+# ============================================================
+	my $self = shift;
+	my $user = $self->{ user };
+	my $exam = $self->{ exam };
+
+	return $user->roles( $exam );
+}
+
+# ============================================================
 sub send {
 # ============================================================
 	my $self = shift;
@@ -83,17 +102,17 @@ sub status {
 	my $self   = shift;
 	my $ping   = exists $self->{ ping } ? $self->ping() : undef;
 	my $uuid   = $self->uuid();
-	my $role   = $self->role();
+	my @roles  = $self->roles();
 	my $health = $ping ? $ping->health() : 'n/a';
 
-	return { uuid => $uuid, role => $role, health => $health };
+	return { uuid => $uuid, roles => [ @roles ], health => $health };
 }
 
-sub device     { my $self = shift; return $self->{ device };     }
-sub exam       { my $self = shift; return $self->{ exam };       }
-sub roles      { my $self = shift; return $self->{ roles };      }
-sub sessid     { my $self = shift; return $self->{ sessid };     }
-sub timedelta  { my $self = shift; return $self->{ timedelta };  }
-sub uuid       { my $self = shift; return $self->{ uuid };       }
+sub device     { my $self = shift; return $self->{ device };       }
+sub exam       { my $self = shift; return $self->{ exam };         }
+sub sessid     { my $self = shift; return $self->{ sessid };       }
+sub timedelta  { my $self = shift; return $self->{ timedelta };    }
+sub user       { my $self = shift; return $self->{ user });        }
+sub uuid       { my $self = shift; return $self->{ user }->uuid(); }
 
 1;
