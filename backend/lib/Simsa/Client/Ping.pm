@@ -87,36 +87,7 @@ sub health {
 }
 
 # ============================================================
-sub normal {
-# ============================================================
-	my $self = shift;
-	$self->go( $self->{ speed }{ normal });
-}
-
-# ============================================================
-sub quit {
-# ============================================================
-	my $self   = shift;
-	my $client = $self->{ client };
-	my $id     = $self->{ id };
-
-	return unless $id;
-
-	Mojo::IOLoop->remove( $id );
-	delete $self->{ id };
-	delete $client->{ ping };
-}
-
-# ============================================================
-sub request {
-# ============================================================
-	my $self    = shift;
-	my $request = shift;
-	return $request->{ subject } eq 'client' && $request->{ action } eq 'pong';
-}
-
-# ============================================================
-sub resolve {
+sub handle {
 # ============================================================
 	my $self      = shift;
 	my $request   = shift;
@@ -146,6 +117,35 @@ sub resolve {
 	elsif( $health eq 'dead'   ) { $self->stop();    }
 
 	$self->{ health } = $health;
+}
+
+# ============================================================
+sub is_pong {
+# ============================================================
+	my $self    = shift;
+	my $request = shift;
+	return $request->{ subject } eq 'client' && $request->{ action } eq 'pong';
+}
+
+# ============================================================
+sub normal {
+# ============================================================
+	my $self = shift;
+	$self->go( $self->{ speed }{ normal });
+}
+
+# ============================================================
+sub quit {
+# ============================================================
+	my $self   = shift;
+	my $client = $self->{ client };
+	my $id     = $self->{ id };
+
+	return unless $id;
+
+	Mojo::IOLoop->remove( $id );
+	delete $self->{ id };
+	delete $client->{ ping };
 }
 
 # ============================================================

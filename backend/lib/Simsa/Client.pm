@@ -6,6 +6,7 @@ use Data::Structure::Util qw( unbless );
 use JSON::XS;
 use Mojolicious::Controller;
 use Simsa::Client::Ping;
+use UUID;
 
 # ============================================================
 sub new {
@@ -28,6 +29,7 @@ sub init {
 
 	$self->{ exam }       = Simsa::DBO::_get( $exam );
 	$self->{ user }       = Simsa::DBO::_get( $user );
+	$self->{ uuid }       = lc UUID::uuid();
 	$self->{ sessid }     = $sessid;
 	$self->{ device }     = $connection;
 	$self->{ websocket }  = $websocket;
@@ -37,12 +39,15 @@ sub init {
 # ============================================================
 sub description {
 # ============================================================
-	my $self  = shift;
-	my $user  = $self->{ user };
-	my $uuid  = $self->uuid();
-	my @roles = $self->roles();
+	my $self   = shift;
+	my $uuid   = $self->uuid();
+	my $sessid = $self->sessid();
+	my $user   = $self->user->uuid();
+	my $roles  = join( ', ', $self->user->roles());
+	my $fname  = $user->fname();
+	my $lname  = $user->lname();
 
-	return sprintf( "%s (%s)", join( ', ', @roles), $uuid );
+	return sprintf( "%s %s %s %s (%s)", $sessid, $uuid, $fname, $lname, $roles );
 }
 
 # ============================================================
@@ -70,16 +75,6 @@ sub ping {
 }
 
 # ============================================================
-sub pong {
-# ============================================================
-# Synonym to ping() (i.e. return the Ping object, which also
-# handles pong())
-# ------------------------------------------------------------
-	my $self = shift;
-	return $self->ping();
-}
-
-# ============================================================
 sub roles {
 # ============================================================
 	my $self = shift;
@@ -97,22 +92,41 @@ sub send {
 }
 
 # ============================================================
+sub sent_pong {
+# ============================================================
+	my $self    = shift;
+	my $request = shift;
+
+	return $self->ping->is_pong( $request );
+}
+
+# ============================================================
 sub status {
 # ============================================================
 	my $self   = shift;
 	my $ping   = exists $self->{ ping } ? $self->ping() : undef;
 	my $uuid   = $self->uuid();
-	my @roles  = $self->roles();
+	my $user   = $self->user->uuid();
+	my @roles  = $self->user->roles();
 	my $health = $ping ? $ping->health() : 'n/a';
 
-	return { uuid => $uuid, roles => [ @roles ], health => $health };
+	return { uuid => $uuid, user => $user, roles => [ @roles ], health => $health };
 }
 
-sub device     { my $self = shift; return $self->{ device };       }
-sub exam       { my $self = shift; return $self->{ exam };         }
-sub sessid     { my $self = shift; return $self->{ sessid };       }
-sub timedelta  { my $self = shift; return $self->{ timedelta };    }
-sub user       { my $self = shift; return $self->{ user });        }
-sub uuid       { my $self = shift; return $self->{ user }->uuid(); }
+# ============================================================
+sub update_health {
+# ============================================================
+	my $self    = shift;
+	my $request = shift;
+
+	return $self->ping->handle( $request );
+}
+
+sub device     { my $self = shift; return $self->{ device };    }
+sub exam       { my $self = shift; return $self->{ exam };      }
+sub sessid     { my $self = shift; return $self->{ sessid };    }
+sub timedelta  { my $self = shift; return $self->{ timedelta }; }
+sub user       { my $self = shift; return $self->{ user });     }
+sub uuid       { my $self = shift; return $self->{ uuid };      }
 
 1;

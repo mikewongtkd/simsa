@@ -27,10 +27,8 @@ get '/shinsa/json/api/v1/:uuid' => sub {
 };
 
 websocket '/shinsa/ws/api/v1/:exam/:user' => sub {
-	my $self   = shift;
-	my $client = $registry->add( $self );
-	my $request = { subject => 'user', action => 'connect', user => { sessid => $client->sessid(), uuid => $client->uuid(), role => $client->role() }};
-	$manager->handle( $client, $request, $registry );
+	my $self    = shift;
+	my $client  = $manager->broadcast_user_connect( $self, $registry );
 
 	$self->inactivity_timeout( 3600 ); # 1 hour
 	$client->ping->start();
@@ -38,9 +36,12 @@ websocket '/shinsa/ws/api/v1/:exam/:user' => sub {
 	# ----------------------------------------
 	$self->on( message => sub {
 	# ----------------------------------------
+		my $self    = shift;
+		my $request = $json->decode( shift );
+
 		try { 
-			if( $client->pong->request( $request )) {
-				$client->pong->resolve( $request );
+			if( $client->sent_pong( $request )) {
+				$client->update_health( $request );
 
 			} else {
 				$manager->handle( $client, $request, $registry ); 
@@ -53,10 +54,10 @@ websocket '/shinsa/ws/api/v1/:exam/:user' => sub {
 	# ----------------------------------------
 	$self->on( finish => sub {
 	# ----------------------------------------
-		my $request = { subject => 'user', action => 'disconnect', user => { sessid => $client->sessid(), uuid => $client->uuid(), role => $client->role() }};
+		my $request = { subject => 'user', action => 'disconnect', user => { sessid => $client->sessid(), uuid => $client->user->uuid(), roles => $client->user->roles() }};
 		$registry->remove( $client );
 		$manager->handle( $client, $request, $registry );
-		$client->ping->quit();
+		$client->ping->stop();
 	});
 };
 

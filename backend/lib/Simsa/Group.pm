@@ -5,10 +5,13 @@ use List::MoreUtils qw( first_index );
 # ============================================================
 sub add_examinee {
 # ============================================================
-	my $self  = shift;
-	my $user  = shift;
+	my $self     = shift;
+	my $examinee = shift;
+
+	$examinee = Simsa::DBO::_get( $examinee );
 	
-	push @{$self->{ examinee }}, $user;
+	push @{$self->{ data }{ examinee }}, $examinee;
+	$self->write();
 }
 
 # ============================================================
@@ -17,21 +20,42 @@ sub add_group {
 	my $self  = shift;
 	my $group = shift;
 
-	push @{$self->{ group }}, $group;
+	push @{$self->{ data }{ group }}, $group;
+	$self->write();
+}
+
+# ============================================================
+sub all_examinees {
+# ============================================================
+	my $self      = shift;
+	my @examinees = @{$self->{ data }{ examinee }};
+
+	return @examinees unless exists $self->{ data }{ group };
+
+	foreach my $group (@{$self->{ data }{ group }}) {
+		$group = Simsa::DBO::_get( $group );
+
+		# Recursively drill down
+		push @examinees, $group->all_examinees();
+	}
+	return @examinees;
 }
 
 # ============================================================
 sub remove_examinee {
 # ============================================================
-	my $self  = shift;
-	my $user  = shift;
-	my $uuid  = ref $user ? $user->uuid() : $user;
+	my $self     = shift;
+	my $examinee = shift;
 
-	my $i = first_index { $_->uuid() eq $uuid } @{$self->{ examinee }};
+	$examinee = Simsa::DBO::_get( $examinee );
+	my $uuid  = $examinee->uuid();
+
+	my $i = first_index { $_->uuid() eq $uuid } @{$self->{ data }{ examinee }};
 
 	return 0 if( $i < 0 );
 
-	return splice( @{ $self->{ examinee }}, $i, 1 );
+	$self->write();
+	return splice( @{ $self->{ data }{ examinee }}, $i, 1 );
 }
 
 # ============================================================
@@ -39,13 +63,16 @@ sub remove_group {
 # ============================================================
 	my $self  = shift;
 	my $group = shift;
-	my $uuid  = ref $group ? $group->uuid() : $group;
 
-	my $i = first_index { $_->uuid() eq $uuid } @{$self->{ group }};
+	$group   = Simsa::DBO::_get( $group );
+	my $uuid = $group->uuid();
+
+	my $i = first_index { $_->uuid() eq $uuid } @{$self->{ data }{ group }};
 
 	return 0 if( $i < 0 );
 
-	return splice( @{ $self->{ group }}, $i, 1 );
+	$self->write();
+	return splice( @{ $self->{ data }{ group }}, $i, 1 );
 }
 
 

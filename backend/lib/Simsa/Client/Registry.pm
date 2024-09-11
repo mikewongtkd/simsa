@@ -44,29 +44,37 @@ sub clients {
 	my $client     = shift;
 	my $audience   = shift;
 	my $exam       = $client->exam->uuid();
-	my @clients    = ();
+	my $clients    = { $client->uuid() => $client }; # Always include the client that sent the request
 
-	foreach my $uuid (@$audience) {
-		my $document = Simsa::DBO::_get( $uuid );
-		my $class    = $document->class();
+	foreach my $document (@$audience) {
+		my $class = $document->class();
 
 		my @users = ();
 		if( $class =~ /role/i ) {
 			my $role = $document;
 			push @users, $role->user->uuid();
 
+		} elsif( $class =~ /group/i ) {
+			my $group = $document;
+			push @users, map { $_->user->uuid() } $group->all_examinees();
+
 		} elsif( $class =~ /panel/i ) {
 			my $panel = $document;
-			push @users, map { $_->user->uuid() } $panel->computer_operators()
-			push @users, map { $_->user->uuid() } $panel->examiners()
-			push @users, map { $_->user->uuid() } $panel->group->examinees()
+			push @users, map { $_->user->uuid() } $panel->computer_operators();
+			push @users, map { $_->user->uuid() } $panel->examiners();
+			push @users, map { $_->user->uuid() } $panel->group->all_examinees();
 		}
 
 		foreach my $user (@users) {
 			next unless exists $self->{ client }{ $exam }{ $user };
-			push @clients, @{$self->{ client }{ $exam }{ $user }};
+			foreach my $client (@{$self->{ client }{ $exam }{ $user }}) {
+				my $uuid = $client->uuid();
+				$clients->{ $uuid } = $client;
+			}
 		}
 	}
+
+	return values %$clients;
 }
 
 # ============================================================
@@ -76,9 +84,10 @@ sub remove {
 	my $client = shift;
 	my $user   = $client->user->uuid();
 	my $exam   = $client->exam->uuid();
+	my $uuid   = $client->uuid();
 
-	# Filter out all clients with the same session ID as the requested client
-	$self->{ $exam }{ $user } = [ grep { $_->{ sessid } eq $client->{ sessid } } @{$self->{ $exam }{ $user }} ];
+	# Filter out all clients with the same Client UUID
+	$self->{ $exam }{ $user } = [ grep { $_->uuid() ne $uuid } @{$self->{ $exam }{ $user }} ];
 
 	# Prune unused branches
 	delete $self->{ $exam }{ $user } unless @{$self->{ $exam }{ $user }};

@@ -25,7 +25,7 @@ sub roles {
 	my $self = shift;
 	my $exam = shift;
 
-	$exam = Simsa::DBO::_get( $exam ) if( Simsa::DBO::_is_uuid( $exam ));
+	$exam = Simsa::DBO::_get( $exam );
 
 	my $sql = 'select class, json_extract( document.data, "$.user" ) as user, json_extract( document.data, "$.exam" ) as exam from document where user = ? and exam = ?';
 	my $sth = Simsa::DBO::_prepare_statement( 'roles', $sql );

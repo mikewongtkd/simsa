@@ -25,7 +25,8 @@ my $exam = new Simsa::Exam( name => 'CUTA KKW Dan Examination', date => '2024-10
 my $examinee = new Simsa::Role::Examinee(
 	id   => '101',
 	exam => $exam->uuid(),
-	user => $user->uuid()
+	user => $user->uuid(),
+	promoting => { to => '7th Dan', from => '6th Dan' }
 );
 
 printf "Examinee: %d -> %s %s\n\n", $examinee->id(), $examinee->fname(), $examinee->lname();

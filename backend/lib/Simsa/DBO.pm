@@ -13,12 +13,14 @@ our $dbh  = undef;
 our $sth  = {};
 our $json = new JSON::XS();
 our $statement = {
-	exists     => 'select count(*) from document where uuid=?',
-	get        => 'select * from document where uuid=?',
+	delete     => "update document set deleted = datetime( 'now' ) where uuid=? and deleted is null",
+	exists     => 'select count(*) from document where uuid=? and deleted is null',
+	get        => 'select * from document where uuid=? and deleted is null',
 	insert     => 'insert into document (uuid, class, data) values (?, ?, ?)',
 	joins      => "select * from document where class='Join' and json_extract( document.data, ? ) = ? and json_extract( document.data, ? ) is not null",
 	references => "select * from document where class like ? and json_extract( document.data, ? ) = ?",
-	update     => 'update document set data=? where uuid=?'
+	restore    => 'update document set deleted = null where uuid=?',
+	update     => "update document set data=?, modified = datetime( 'now' ) where uuid=?"
 };
 
 # ============================================================
@@ -141,20 +143,6 @@ sub get {
 	}
 
 	return undef;
-}
-
-# ============================================================
-sub read {
-# ============================================================
-	my $class = shift;
-	my $uuid  = shift;
-	return _get( $uuid );
-}
-
-# ============================================================
-sub search {
-# ============================================================
-	my $query = shift;
 }
 
 # ============================================================
@@ -320,6 +308,8 @@ sub _get {
 	my $uuid   = shift;
 	my $exists = _exists( $uuid );
 
+	return $uuid if ref $uuid;
+
 	if( ! $exists ) {
 		warn "No document with UUID $uuid $!";
 		return undef;
@@ -395,6 +385,21 @@ sub _prune {
 			return { map { $_ => _prune( $document->{ $_ })} sort keys %$document };
 		}
 	}
+}
+
+# ============================================================
+sub _search {
+# ============================================================
+	my %query = @_;
+
+	my $sql    = 'select *, '
+	my @select = map { "json_extract( data, \"\$.$_\" ) as $_" } keys %query;
+
+	$sql .= join( ', ', @select );
+
+	my @where  = map { "$_ like ?" } keys %query;
+
+	$sql .= ' where ' . join( ' and ', @where ) . ' and deleted is null';
 }
 
 # ============================================================
