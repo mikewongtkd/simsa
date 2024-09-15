@@ -1,18 +1,5 @@
 package Simsa::RequestManager;
-use List::Util qw( first );
 use Simsa;
-
-our $audience = {
-	user => {
-		connect => [ qw( admin staff panel )],
-		disconnect => [ qw( admin staff panel )]
-	},
-	examiner => {
-		score => {
-			examinee => [ qw( admin staff panel )]
-		}
-	}
-}
 
 # ============================================================
 sub new {
@@ -32,7 +19,7 @@ sub broadcast {
 	my $client   = shift;
 	my $registry = shift;
 	my $audience = shift;
-	my @clients  = $registry->clients( $client, $audience );
+	my @clients  = $registry->audience( $client );
 
 	foreach my $client (@clients) {
 		$client->send({ json => { result => $result->document(), request => $request }});
@@ -66,9 +53,9 @@ sub handle {
 	die "No request handler for '" . join( ' ', map { ucfirst } @keys ) . "' $!" unless $self->can( $callback );
 
 	my @params = map { exists $request->{ $_ } ? $request->{ $_ } : () } @keys;
-	my ($result, $audience) = $self->$callback( $request, @params );
+	my $result = $self->$callback( $request, @params );
 
-	$self->broadcast( $request, $result, $client, $registry, $audience );
+	$self->broadcast( $request, $result, $client, $registry );
 }
 
 # ============================================================
@@ -163,12 +150,8 @@ sub broadcast_user_connect {
 	my $exam       = $client->exam();
 
 	my $result     = { subject => 'user', action => 'connect', user => { sessid => $client->sessid(), uuid => $user->uuid(), roles => $user->roles( where => { exam => $exam }) }};
-	my $audience   = [];
-	my $panel      = first { $_->panel() } $user->groups( where => { exam => $exam });
 
-	push @$audience, $panel if $panel;
-
-	$self->broadcast( $request, $result, $client, $registry, $audience );
+	$self->broadcast( $request, $result, $client, $registry );
 }
 
 # ============================================================
@@ -181,14 +164,10 @@ sub broadcast_user_disconnect {
 	my $exam     = $client->exam();
 
 	my $result   = { subject => 'user', action => 'disconnect', user => { sessid => $client->sessid(), uuid => $user->uuid(), roles => $user->roles( where => { exam => $exam }) }};
-	my $audience = [];
-	my $panel    = first { $_->panel() } $user->groups( where => { exam => $exam });
 
 	$registry->remove( $client );
 
-	push @$audience, $panel if $panel;
-
-	$self->broadcast( $request, $result, $client, $registry, $audience );
+	$self->broadcast( $request, $result, $client, $registry );
 
 }
 

@@ -1,5 +1,6 @@
 package Simsa::Client::Registry;
 use lib qw( /usr/local/freescore/lib );
+use List::Util qw( first );
 use Simsa::Client;
 use Simsa::DBO;
 
@@ -22,6 +23,8 @@ sub init {
 # ============================================================
 sub add {
 # ============================================================
+# A User in an Exam may connect with multiple devices (clients)
+# ------------------------------------------------------------
 	my $self       = shift;
 	my $websocket  = shift;
 	my $client     = new Simsa::Client( $websocket );
@@ -38,43 +41,32 @@ sub add {
 }
 
 # ============================================================
-sub clients {
+sub audience {
 # ============================================================
 	my $self       = shift;
 	my $client     = shift;
-	my $audience   = shift;
 	my $exam       = $client->exam->uuid();
-	my $clients    = { $client->uuid() => $client }; # Always include the client that sent the request
+	my $audience   = { $client->uuid() => $client}; # Always include the client that sent the request
+	my @groups     = $client->groups( where => { exam => $exam });
+	my $group      = first { $_->panel() } @groups;
+	my $panel      = $group->panel();
+	my @others     = ();
 
-	foreach my $document (@$audience) {
-		my $class = $document->class();
+	if( $panel() ) {
+		push @others, map { $_->user->uuid() } $panel->computer_operators();
+		push @others, map { $_->user->uuid() } $panel->examiners();
+		push @others, map { $_->user->uuid() } $group->all_examinees();
+	}
 
-		my @users = ();
-		if( $class =~ /role/i ) {
-			my $role = $document;
-			push @users, $role->user->uuid();
-
-		} elsif( $class =~ /group/i ) {
-			my $group = $document;
-			push @users, map { $_->user->uuid() } $group->all_examinees();
-
-		} elsif( $class =~ /panel/i ) {
-			my $panel = $document;
-			push @users, map { $_->user->uuid() } $panel->computer_operators();
-			push @users, map { $_->user->uuid() } $panel->examiners();
-			push @users, map { $_->user->uuid() } $panel->group->all_examinees();
-		}
-
-		foreach my $user (@users) {
-			next unless exists $self->{ client }{ $exam }{ $user };
-			foreach my $client (@{$self->{ client }{ $exam }{ $user }}) {
-				my $uuid = $client->uuid();
-				$clients->{ $uuid } = $client;
-			}
+	foreach my $user (@users) {
+		next unless exists $self->{ client }{ $exam }{ $user };
+		foreach my $client (@{$self->{ client }{ $exam }{ $user }}) {
+			my $uuid = $client->uuid();
+			$audience->{ $uuid } = $client; # Add each individual device
 		}
 	}
 
-	return values %$clients;
+	return values %$audience;
 }
 
 # ============================================================
