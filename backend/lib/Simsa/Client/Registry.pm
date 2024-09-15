@@ -49,10 +49,10 @@ sub audience {
 	my $audience   = { $client->uuid() => $client}; # Always include the client that sent the request
 	my @groups     = $client->groups( where => { exam => $exam });
 	my $group      = first { $_->panel() } @groups;
-	my $panel      = $group->panel();
+	my $panel      = $group ? $group->panel() : undef;
 	my @users      = ();
 
-	if( $panel() ) {
+	if( $panel ) {
 		push @users, map { $_->user->uuid() } $panel->computer_operators();
 		push @users, map { $_->user->uuid() } $panel->examiners();
 		push @users, map { $_->user->uuid() } $group->all_examinees();
