@@ -2,7 +2,6 @@ package Simsa::Client::Ping;
 use base qw( Clone );
 use List::Util qw( sum );
 use Data::Structure::Util qw( unbless );
-use Date::Manip;
 use JSON::XS;
 use Mojolicious::Controller;
 use Mojo::IOLoop;
@@ -132,7 +131,7 @@ sub start {
 	$self->{ interval } = $interval;
 
 	$self->{ id } = Mojo::IOLoop->recurring( $interval => sub ( $ioloop ) {
-		my $now = (new Date::Manip::Date( 'now GMT' ))->printf( '%O' ) . 'Z';
+		my $now = time();
 		$self->{ pings }{ $now } = 1;
 		my $ping = { subject => 'server', action => 'ping', server => { timestamp => $now }};
 		$client->send({ json => $ping });
@@ -185,9 +184,9 @@ sub update_latency {
 	delete $self->{ pings }{ $server_ts } if( exists $self->{ pings }{ $server_ts });
 
 	try {
-		my $date1     = new Date::Manip::Date( $server_ts );
-		my $date2     = new Date::Manip::Date( 'now GMT' );
-		my $delta     = $date1->calc( $date2 );
+		my $time1     = $server_ts;
+		my $time2     = time();
+		my $delta     = $time2 - $time1;
 		my $window    = $self->{ time }{ window };
 
 		$self->{ time }{ sum } += $delta;
