@@ -50,12 +50,12 @@ sub audience {
 	my @groups     = $client->groups( where => { exam => $exam });
 	my $group      = first { $_->panel() } @groups;
 	my $panel      = $group->panel();
-	my @others     = ();
+	my @users      = ();
 
 	if( $panel() ) {
-		push @others, map { $_->user->uuid() } $panel->computer_operators();
-		push @others, map { $_->user->uuid() } $panel->examiners();
-		push @others, map { $_->user->uuid() } $group->all_examinees();
+		push @users, map { $_->user->uuid() } $panel->computer_operators();
+		push @users, map { $_->user->uuid() } $panel->examiners();
+		push @users, map { $_->user->uuid() } $group->all_examinees();
 	}
 
 	foreach my $user (@users) {
