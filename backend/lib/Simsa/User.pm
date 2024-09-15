@@ -13,19 +13,35 @@ sub grant_root_access {
 # ============================================================
 sub role {
 # ============================================================
-	my $self = shift;
-	my $exam = shift;
+	my $self   = shift;
+	my $where  = shift;
+	my $filter = shift;
+	my $exam   = undef;
 
-	return ($self->roles( $exam ))[ 0 ];
+	if( $where eq 'where' && exists $filter->{ exam }) {
+		$exam = $filter->{ exam };
+		return ($self->roles( $exam ))[ 0 ];
+
+	} else {
+		return 'Public';
+	}
 }
 
 # ============================================================
 sub roles {
 # ============================================================
-	my $self = shift;
-	my $exam = shift;
+	my $self   = shift;
+	my $where  = shift;
+	my $filter = shift;
+	my $exam   = undef;
 
-	$exam = Simsa::DBO::_get( $exam );
+	if( $where eq 'where' && exists $filter->{ exam }) {
+		$exam = $filter->{ exam };
+		$exam = Simsa::DBO::_get( $exam );
+
+	} else {
+		return (qw( Public ));
+	}
 
 	my $sql = 'select class, json_extract( document.data, "$.user" ) as user, json_extract( document.data, "$.exam" ) as exam from document where user = ? and exam = ?';
 	my $sth = Simsa::DBO::_prepare_statement( 'roles', $sql );

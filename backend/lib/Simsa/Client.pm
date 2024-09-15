@@ -88,7 +88,7 @@ sub roles {
 sub send {
 # ============================================================
 	my $self = shift;
-	$self->device->send( @_ );
+	$self->websocket->send( @_ );
 }
 
 # ============================================================
@@ -103,14 +103,15 @@ sub sent_pong {
 # ============================================================
 sub status {
 # ============================================================
-	my $self   = shift;
-	my $ping   = exists $self->{ ping } ? $self->ping() : undef;
-	my $uuid   = $self->uuid();
-	my $user   = $self->user->uuid();
-	my @roles  = $self->user->roles();
-	my $health = $ping ? $ping->health() : 'n/a';
+	my $self     = shift;
+	my $ping     = exists $self->{ ping } ? $self->ping() : undef;
+	my $uuid     = $self->uuid();
+	my $user     = $self->user->uuid();
+	my @roles    = $self->user->roles();
+	my $health   = $ping ? $ping->health() : 'n/a';
+	my $latency  = $ping ? int( $ping->latency() * 1000 ) : 'n/a'; # Report latency in milliseconds
 
-	return { uuid => $uuid, user => $user, roles => [ @roles ], health => $health };
+	return { uuid => $uuid, user => $user, roles => [ @roles ], health => $health, latency => $latency };
 }
 
 # ============================================================
@@ -128,5 +129,6 @@ sub sessid     { my $self = shift; return $self->{ sessid };    }
 sub timedelta  { my $self = shift; return $self->{ timedelta }; }
 sub user       { my $self = shift; return $self->{ user });     }
 sub uuid       { my $self = shift; return $self->{ uuid };      }
+sub websocket  { my $self = shift; return $self->{ websocket }; }
 
 1;

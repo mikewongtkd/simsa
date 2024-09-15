@@ -5,7 +5,7 @@ use Data::Structure::Util qw( unbless );
 use DBI;
 use JSON::XS;
 use Lingua::EN::Inflexion qw( noun verb );
-use List::Util qw( any );
+use List::Util qw( any all );
 use UUID;
 use vars '$AUTOLOAD';
 
@@ -86,8 +86,9 @@ sub document {
 # ============================================================
 sub get {
 # ============================================================
-	my $self  = shift;
-	my $query = shift;
+	my $self   = shift;
+	my $query  = shift;
+	my $filter = shift;
 
 	$query = _field( $query );
 
@@ -108,9 +109,10 @@ sub get {
 		if( $plural ) {
 			if( ref $results eq 'ARRAY' ) {
 				if( any { _is_uuid( $_ ) } @$results ) {
-					return map { _is_uuid( $_ ) ? _get( $_ ) : $_ } @$results;
+					@$results = map { _is_uuid( $_ ) ? _get( $_ ) : $_ } @$results;
 				}
-				return $results;
+				_filter( $results, $filter );
+				return @$results;
 
 			} else {
 				$results = _get( $results ) if( _is_uuid( $results ));
@@ -198,7 +200,13 @@ sub AUTOLOAD {
 		$self->set( $field, $value );
 
 	} elsif( $n > 1 ) {
-		warn "Extra parameters to $AUTOLOAD were ignored $!";
+		if( $_[ 0 ] eq 'where' ) {
+			my $filter = $_[ 1 ];
+			return $self->get( $AUTOLOAD, $filter );
+
+		} else {
+			warn "Extra parameters to $AUTOLOAD were ignored $!";
+		}
 
 	} else {
 		return $self->get( $AUTOLOAD );
@@ -254,6 +262,26 @@ sub _field {
 	my $field = shift;
 	$field = (split /::/, $field)[ -1 ];
 	return $field;
+}
+
+# ============================================================
+sub _filter {
+# ============================================================
+	my $results = shift;
+	my $filter  = shift;
+
+	return $results unless $filter;
+
+	foreach my $field (keys %$filter) {
+		my $uuid = _uuid( $filter->{ $field });
+		@$results = grep { 
+			my $ref = ref( $_ );
+			return 0 unless $ref && $ref ne 'ARRAY' && exists $ref->{ data } && exists $ref->{ data }{ $field };
+			return _uuid( $ref->{ data }{ $field }) eq $uuid;
+		} @$results;
+	}
+
+	return $results;
 }
 
 # ============================================================
@@ -412,6 +440,14 @@ sub _update {
 
 	my $sth = _prepared_statement( 'update' );
 	$sth->execute( $data, $uuid );
+}
+
+# ============================================================
+sub _uuid {
+# ============================================================
+	my $document = shift;
+	return $document if _is_uuid( $document );
+	return $document->uuid();
 }
 
 # ============================================================

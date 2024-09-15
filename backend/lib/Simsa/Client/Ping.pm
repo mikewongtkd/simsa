@@ -6,7 +6,6 @@ use Date::Manip;
 use JSON::XS;
 use Mojolicious::Controller;
 use Mojo::IOLoop;
-use Statistics::Descriptive;
 use Try::Tiny;
 
 # ============================================================
@@ -24,11 +23,11 @@ sub init {
 	my $self   = shift;
 	my $client = shift;
 
-	$self->{ pings }       = {};
-	$self->{ client }      = $client;
-	$client->{ timedelta } = 0;
-	$self->{ timestats }   = new Statistics::Descriptive::Full();
-	$self->{ speed } = { normal => 60, fast => 30, faster => 5, fastest => 1 };
+	$self->{ pings }   = {};
+	$self->{ client }  = $client;
+	$self->{ latency } = 0;
+	$self->{ time }    = { window => []};
+	$self->{ speed }   = { normal => 60, fast => 30, faster => 10, fastest => 2 };
 }
 
 # ============================================================
@@ -76,55 +75,22 @@ sub go {
 # ============================================================
 sub health {
 # ============================================================
-	my $self = shift;
-	my $dropped = int( keys %{$self->{ pings }});
-
-	return 'strong' if( $dropped <= 1  );
-	return 'good'   if( $dropped <= 5  );
-	return 'weak'   if( $dropped <= 10 );
-	return 'bad'    if( $dropped <= 20 );
-	return 'dead'   if( $dropped >  20 );
-}
-
-# ============================================================
-sub handle {
-# ============================================================
-	my $self      = shift;
-	my $request   = shift;
-	my $client    = $self->{ client };
-	my $server_ts = $request->{ server }{ timestamp };
-
-	delete $self->{ pings }{ $server_ts } if( exists $self->{ pings }{ $server_ts });
-
-	try {
-		my $date1     = new Date::Manip::Date( $server_ts );
-		my $date2     = new Date::Manip::Date( 'now GMT' );
-		my $delta     = $date1->calc( $date2 );
-
-		$self->{ timestats }->add_data( _total_seconds( $delta ));
-		$client->{ timedelta } = $self->{ timestats }->mean();
-	} catch {
-
-		print STDERR "One or more invalid dates ($server_ts, $client_ts) $_";
-	};
-
-	my $health = $self->health();
-
-	if(    $health eq 'strong' ) { $self->normal();  }
-	elsif( $health eq 'good'   ) { $self->fast();    }
-	elsif( $health eq 'weak'   ) { $self->faster();  }
-	elsif( $health eq 'bad '   ) { $self->fastest(); }
-	elsif( $health eq 'dead'   ) { $self->stop();    }
-
-	$self->{ health } = $health;
-}
-
-# ============================================================
-sub is_pong {
-# ============================================================
 	my $self    = shift;
-	my $request = shift;
-	return $request->{ subject } eq 'client' && $request->{ action } eq 'pong';
+	my $dropped = int( keys %{$self->{ pings }});
+	my $latency = $self->{ latency };
+
+	return 'strong' if( $dropped <= 1  || $latency <=  0.500 );
+	return 'good'   if( $dropped <= 5  || $latency <=  1.000 );
+	return 'weak'   if( $dropped <= 10 || $latency <=  2.000 );
+	return 'bad'    if( $dropped <= 20 || $latency <=  5.000 );
+	return 'dead'   if( $dropped >  20 || $latency <= 10.000 );
+}
+
+# ============================================================
+sub latency {
+# ============================================================
+	my $self = shift;
+	return $self->{ latency };
 }
 
 # ============================================================
@@ -149,12 +115,19 @@ sub quit {
 }
 
 # ============================================================
+sub sent_pong {
+# ============================================================
+	my $self    = shift;
+	my $request = shift;
+	return $request->{ subject } eq 'client' && $request->{ action } eq 'pong';
+}
+
+# ============================================================
 sub start {
 # ============================================================
 	my $self     = shift;
 	my $interval = shift || $self->{ speed }{ normal };
 	my $client   = $self->{ client };
-	my $ws       = $client->{ websocket };
 
 	$self->{ interval } = $interval;
 
@@ -162,7 +135,15 @@ sub start {
 		my $now = (new Date::Manip::Date( 'now GMT' ))->printf( '%O' ) . 'Z';
 		$self->{ pings }{ $now } = 1;
 		my $ping = { subject => 'server', action => 'ping', server => { timestamp => $now }};
-		$ws->send({ json => $ping });
+		$client->send({ json => $ping });
+
+		Mojo::IOLoop->timer(( $interval / 2 ) => sub ( $loop ) {
+			$self->update_health();
+			if( $self->changed()) {
+				my $status = $client->status();
+				$client->send({ json => $status });
+			}
+		});
 	});
 }
 
@@ -176,6 +157,51 @@ sub stop {
 
 	Mojo::IOLoop->remove( $id );
 	delete $self->{ id };
+}
+
+# ============================================================
+sub update_health {
+# ============================================================
+	my $self   = shift;
+	my $health = $self->health();
+
+	if(    $health eq 'strong' ) { $self->normal();  }
+	elsif( $health eq 'good'   ) { $self->fast();    }
+	elsif( $health eq 'weak'   ) { $self->faster();  }
+	elsif( $health eq 'bad '   ) { $self->fastest(); }
+	elsif( $health eq 'dead'   ) { $self->stop();    }
+
+	$self->{ health } = $health;
+}
+
+# ============================================================
+sub update_latency {
+# ============================================================
+	my $self      = shift;
+	my $request   = shift;
+	my $client    = $self->{ client };
+	my $server_ts = $request->{ server }{ timestamp };
+
+	delete $self->{ pings }{ $server_ts } if( exists $self->{ pings }{ $server_ts });
+
+	try {
+		my $date1     = new Date::Manip::Date( $server_ts );
+		my $date2     = new Date::Manip::Date( 'now GMT' );
+		my $delta     = $date1->calc( $date2 );
+		my $window    = $self->{ time }{ window };
+
+		$self->{ time }{ sum } += $delta;
+		my $n = int( @$window );
+
+		shift @$window if( $n >= 20 );
+		$self->{ latency } = (sum @$window)/$n;
+
+	} catch {
+
+		print STDERR "One or more invalid dates ($server_ts, $client_ts) $_";
+	};
+
+	return $self->{ latency };
 }
 
 # ============================================================

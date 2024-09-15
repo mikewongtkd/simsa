@@ -1,4 +1,5 @@
 package Simsa::RequestManager;
+use List::Util qw( first );
 use Simsa;
 
 our $audience = {
@@ -161,9 +162,13 @@ sub broadcast_user_connect {
 	my $user       = $client->user();
 	my $exam       = $client->exam();
 
-	my $request = { subject => 'user', action => 'connect', user => { sessid => $client->sessid(), uuid => $user->uuid(), roles => $user->roles( $exam ) }};
+	my $result     = { subject => 'user', action => 'connect', user => { sessid => $client->sessid(), uuid => $user->uuid(), roles => $user->roles( where => { exam => $exam }) }};
+	my $audience   = [];
+	my $panel      = first { $_->panel() } $user->groups( where => { exam => $exam });
 
-	my $audience = []
+	push @$audience, $panel if $panel;
+
+	$self->broadcast( $request, $result, $client, $registry, $audience );
 }
 
 # ============================================================
@@ -172,8 +177,19 @@ sub broadcast_user_disconnect {
 	my $self     = shift;
 	my $client   = shift;
 	my $registry = shift;
+	my $user     = $client->user();
+	my $exam     = $client->exam();
 
-	my $group    = $user->group();
+	my $result   = { subject => 'user', action => 'disconnect', user => { sessid => $client->sessid(), uuid => $user->uuid(), roles => $user->roles( where => { exam => $exam }) }};
+	my $audience = [];
+	my $panel    = first { $_->panel() } $user->groups( where => { exam => $exam });
+
+	$registry->remove( $client );
+
+	push @$audience, $panel if $panel;
+
+	$self->broadcast( $request, $result, $client, $registry, $audience );
+
 }
 
 1;

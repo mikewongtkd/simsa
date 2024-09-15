@@ -41,7 +41,7 @@ websocket '/shinsa/ws/api/v1/:exam/:user' => sub {
 
 		try { 
 			if( $client->sent_pong( $request )) {
-				$client->update_health( $request );
+				$client->update_latency( $request );
 
 			} else {
 				$manager->handle( $client, $request, $registry ); 
@@ -54,9 +54,7 @@ websocket '/shinsa/ws/api/v1/:exam/:user' => sub {
 	# ----------------------------------------
 	$self->on( finish => sub {
 	# ----------------------------------------
-		my $request = { subject => 'user', action => 'disconnect', user => { sessid => $client->sessid(), uuid => $client->user->uuid(), roles => $client->user->roles() }};
-		$registry->remove( $client );
-		$manager->handle( $client, $request, $registry );
+		$manager->broadcast_user_disconnect( $client, $registry );
 		$client->ping->stop();
 	});
 };
